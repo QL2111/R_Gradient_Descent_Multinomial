@@ -1,0 +1,194 @@
+---
+title: "Untitled"
+output: pdf_document
+date: "2024-10-30"
+---
+
+## Fonction de préparation des données: DataPreparer
+
+
+```{r cars}
+library(R6)
+
+DataPreparer <- R6::R6Class("DataPreparer",
+                            public = list(
+                              # Paramètre pour choisir l'analyse factorielle pour variables qualitatives
+                              use_factor_analysis = FALSE,
+                              
+                              # Constructeur
+                              initialize = function(use_factor_analysis = FALSE) {
+                                self$use_factor_analysis <- use_factor_analysis
+                              },
+                              
+                              # Méthode pour standardiser les données quantitatives
+                              standardize = function(data) {
+                                return((data - mean(data, na.rm = TRUE)) / sd(data, na.rm = TRUE))
+                              },
+                              
+                              # Méthode principale pour préparer les données
+                              prepare_data = function(data) {
+                                # Identifier les variables quantitatives et qualitatives
+                                quantitative_vars <- sapply(data, is.numeric)
+                                qualitative_vars <- !quantitative_vars
+                                
+                                # Initialiser une liste pour stocker les données préparées
+                                prepared_list <- list()
+                                
+                                # Traitement des variables quantitatives
+                                if (any(quantitative_vars)) {
+                                  quant_data <- data[, quantitative_vars, drop = FALSE]
+                                  quant_data <- as.data.frame(lapply(quant_data, self$standardize))
+                                  prepared_list$quantitative <- quant_data
+                                }
+                                
+                                # Traitement des variables qualitatives
+                                if (any(qualitative_vars)) {
+                                  qual_data <- data[, qualitative_vars, drop = FALSE]
+                                  
+                                  if (self$use_factor_analysis) {
+                                    # Analyse factorielle des données mixtes (AFDM)
+                                    # Remarque : Assurez-vous que la fonction `factor_analysis_mixed` est disponible
+                                    qual_data <- factor_analysis_mixed(qual_data)
+                                  } else {
+                                    # Codage en disjonctif complet (0/1)
+                                    qual_data <- as.data.frame(model.matrix(~ . - 1, data = qual_data))
+                                  }
+                                  
+                                  prepared_list$qualitative <- qual_data
+                                }
+                                
+                                # Combiner les données quantitatives et qualitatives
+                                prepared_data <- do.call(cbind, prepared_list)
+                                return(prepared_data)
+                              }
+                            )
+)
+
+# Fonction fictive pour illustrer l'AFDM - doit être remplacée par une vraie implémentation
+factor_analysis_mixed <- function(data) {
+  # Ici on simule l'analyse factorielle - vous pouvez utiliser un package comme `FactoMineR`
+  # pour une vraie analyse factorielle sur les données mixtes.
+  # Cette fonction devrait transformer les données qualitatives en variables continues.
+  return(data.frame(matrix(rnorm(n = nrow(data) * 2), ncol = 2)))
+}
+```
+
+
+## Test de la fonction avec Iris
+
+```{r}
+# Chargement des données
+data(iris)
+```
+
+
+```{r}
+# Création d'une variable qualitative
+iris$Species <- as.factor(iris$Species)
+
+# Instanciation de la classe pour utiliser le codage en 0/1
+data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+prepared_data <- data_prep$prepare_data(iris)
+print(prepared_data)
+
+# Instanciation de la classe pour utiliser l'analyse factorielle
+data_prep_factor <- DataPreparer$new(use_factor_analysis = TRUE)
+prepared_data_factor <- data_prep_factor$prepare_data(iris)
+print(prepared_data_factor)
+
+```
+
+
+## Régression logistique multinomiale avec R6
+
+```{r}
+library(R6)
+
+# Définition de la classe pour la régression logistique multinomiale
+LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
+  public = list(
+    # Attributs
+    coefficients = NULL,
+    learning_rate = NULL,
+    num_iterations = NULL,
+    
+    # Méthode d'initialisation
+    initialize = function(learning_rate = 0.01, num_iterations = 1000) {
+      self$learning_rate <- learning_rate
+      self$num_iterations <- num_iterations
+    },
+    
+    # Méthode d'ajustement du modèle
+    fit = function(X, y) {
+      # Convertir y en une matrice binaire
+      unique_classes <- unique(y)
+      num_classes <- length(unique_classes)
+      num_samples <- nrow(X)
+      num_features <- ncol(X)
+      
+      # Initialiser les coefficients
+      self$coefficients <- matrix(0, nrow = num_features + 1, ncol = num_classes)
+      
+      # Ajouter une colonne de 1 pour le terme d'interception
+      X <- cbind(1, X)
+      
+      # Descente de gradient
+      for (i in 1:self$num_iterations) {
+        # Calculer les probabilités
+        linear_model <- X %*% self$coefficients
+        probabilities <- self$softmax(linear_model)
+        
+        # Calculer le gradient
+        error <- probabilities - self$one_hot_encode(y, unique_classes)
+        gradient <- t(X) %*% error / num_samples
+        
+        # Mettre à jour les coefficients
+        self$coefficients <- self$coefficients - self$learning_rate * gradient
+      }
+    },
+    
+    # Fonction softmax pour la régression logistique multinomiale
+    softmax = function(z) {
+      exp_z <- exp(z - max(z)) # Pour éviter les problèmes de débordement
+      return(exp_z / rowSums(exp_z))
+    },
+    
+    # Encoder les classes en une matrice binaire
+    one_hot_encode = function(y, unique_classes) {
+      one_hot <- matrix(0, nrow = length(y), ncol = length(unique_classes))
+      for (i in 1:length(y)) {
+        one_hot[i, which(unique_classes == y[i])] <- 1
+      }
+      return(one_hot)
+    },
+    
+    # Prédire les classes
+    predict = function(X) {
+      X <- cbind(1, X) # Ajouter le biais
+      linear_model <- X %*% self$coefficients
+      probabilities <- self$softmax(linear_model)
+      return(apply(probabilities, 1, which.max))
+    }
+  )
+)
+
+```
+
+
+```{r}
+# Utilisation de la classe
+# Générer un exemple de données
+set.seed(123)
+X <- matrix(rnorm(100 * 3), ncol = 3)
+y <- sample(c("class1", "class2", "class3"), 100, replace = TRUE)
+
+# Créer et ajuster le modèle
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 1000)
+model$fit(X, y)
+
+# Prédire les classes
+predictions <- model$predict(X)
+print(predictions)
+
+```
+
