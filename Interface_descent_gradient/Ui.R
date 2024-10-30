@@ -1,0 +1,47 @@
+library(shiny)
+library(readr) # Pour lire les fichiers CSV
+library(readxl) # Pour lire les fichiers Excel
+library(DT) # Pour afficher les tables de données
+
+# Interface utilisateur
+ui <- fluidPage(
+  # Lien vers le fichier CSS pour la mise en forme
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
+  ),
+  
+  # Titre de l'application
+  titlePanel("Descente de gradient multinomial"),
+  
+  # Menu de navigation
+  sidebarLayout(
+    sidebarPanel(
+      # Sélection du fichier de données
+      fileInput("file", "Choisir un fichier de données",
+                accept = c(".csv", ".xlsx")),
+      
+      # Sélection de la variable cible
+      uiOutput("target_var_ui"),
+      
+      # Sélection des variables explicatives
+      uiOutput("predictor_vars_ui"),
+      
+      # Bouton pour lancer les calculs
+      actionButton("calculate", "Lancer les calculs")
+    ),
+    
+    mainPanel(
+      # Titre pour l'aperçu des données
+      h3("Aperçu des données"),
+      
+      # Aperçu des données
+      DTOutput("data_preview"),
+      
+      # Espace pour afficher les résultats
+      h3("Résultats"),
+      textOutput("results")
+    )
+  )
+)
+
+# Fin de l'interface utilisateur

@@ -1,0 +1,26 @@
+{
+    "id": "FBF94D41",
+    "path": "~/Descent_Gradient_Multinomial/app.R",
+    "project_path": "app.R",
+    "type": "r_source",
+    "hash": "2491352454",
+    "contents": "",
+    "dirty": false,
+    "created": 1730291031105.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "55,0",
+        "scrollLine": "45"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1730298324,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1730298324172,
+    "read_only": false,
+    "read_only_alternatives": []
+}
