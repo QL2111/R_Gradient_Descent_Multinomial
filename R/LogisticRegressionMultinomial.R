@@ -84,6 +84,21 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       linear_model <- X %*% self$coefficients
       probabilities <- self$softmax(linear_model)
       return(apply(probabilities, 1, which.max))
+    },
+    
+    # Method to calculate variable importance
+    var_importance = function() {
+      coef_matrix <- abs(self$coefficients[-1, ])  # Exclude intercept term
+      importance_scores <- rowSums(coef_matrix)    # Sum of absolute coefficients for each feature
+      importance_ranked <- sort(importance_scores, decreasing = TRUE)
+      
+      # Affichage des importances
+      cat("Variable Importance (sorted):\n")
+      for (i in 1:length(importance_ranked)) {
+        cat(names(importance_ranked)[i], ": ", importance_ranked[i], "\n")
+      }
+      
+      return(importance_ranked)
     }
   )
 )
