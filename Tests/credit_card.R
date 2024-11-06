@@ -1,4 +1,5 @@
 # https://www.kaggle.com/datasets/samuelcortinhas/credit-card-approval-clean-data Variable à predire: Industry
+# On test avec Approved car l'accuracy est très faible pour Industry -> Même avec approved, l'accuracy est faible (0.16).. Il y a un problème avec le modèle
 
 # Charger les bibliothèques nécessaires
 library(R6)
@@ -8,7 +9,7 @@ source("R/DataPreparer.R")
 source("R/factor_analysis_mixed.R")
 source("R/LogisticRegressionMultinomial.R")
 
-print("\nCredit Card Approval Prediction Example \n")
+print("Credit Card Approval Prediction Example")
 
 # Charger le jeu de données depuis un fichier local après téléchargement de Kaggle
 data_path <- "data/credit_card.csv"  # Remplacez par le chemin de votre fichier
@@ -51,7 +52,7 @@ model$fit(X_train_matrix, y_train_numeric)
 predictions <- model$predict(X_test_matrix)
 
 # Afficher les prédictions
-print(predictions)
+# print(predictions)
 
 # Calculer et afficher l'accuracy
 accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
@@ -59,7 +60,7 @@ cat("Accuracy:", accuracy, "\n")
 
 # Matrice de confusion pour évaluer les performances
 confusion_matrix <- table(Predicted = predictions, Actual = y_test_numeric)
-print(confusion_matrix)
+# print(confusion_matrix)
 
 # Importance des variables
 model$var_importance()
