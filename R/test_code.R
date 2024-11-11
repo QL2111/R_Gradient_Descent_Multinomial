@@ -1,47 +1,57 @@
 # Charger les fichiers de fonctions
-source("R/DataPreparer.R")
-source("R/factor_analysis_mixed.R")
-source("R/LogisticRegressionMultinomial.R")
 
-# Charger les données Iris
+source("R/LogisticRegressionMultinomial.R")
+# Charger le package R6
+library(R6)
+library(glmnet)
+
+# Charger le jeu de données Iris
 data(iris)
+
+# Préparer les données pour un modèle de régression logistique multinomiale
+# Convertir 'Species' en facteur pour avoir des classes
 iris$Species <- as.factor(iris$Species)
 
-# Diviser les données en train/test
-set.seed(42) # Pour la reproductibilité
-train_indices <- sample(1:nrow(iris), size = 0.7 * nrow(iris)) # 70% pour l'entraînement
-train_data <- iris[train_indices, ]
-test_data <- iris[-train_indices, ]
+# Séparer les prédicteurs (X) et la variable cible (y)
+X <- iris[, -5]  # Toutes les colonnes sauf Species
+y <- iris$Species
 
-# Préparer les données
-data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-prepared_train_data <- data_prep$prepare_data(train_data)
-prepared_test_data <- data_prep$prepare_data(test_data)
-
-# Séparer les caractéristiques et la variable cible
-X_train <- as.matrix(prepared_train_data[, -1])  # Retirer la première colonne (variable cible)
-y_train <- train_data$Species
-
-X_test <- as.matrix(prepared_test_data[, -1])  # Retirer la première colonne (variable cible)
-y_test <- test_data$Species
-
-# Créer une instance de la classe
+#1. ################## Instancier le modèle avec les paramètres souhaités
 model <- LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 1000)
 
-# Ajuster le modèle sur l'ensemble d'entraînement
-model$fit(X_train, y_train)
+#2. ################# Ajuster le modèle sur le jeu de données
+model$fit(X, y)
 
-# Prédire sur l'ensemble de test
-predictions <- model$predict(X_test)
+#3. ################## Afficher un résumé des paramètres ajustés du modèle
+model$summary()
 
-# Afficher les prédictions
+#4. ################## Prédire les probabilités d'appartenance aux classes pour les données d'entraînement
+probabilities <- model$predict_proba(X)
+print("Probabilités d'appartenance aux classes pour chaque observation :")
+print(probabilities)
+
+#5. ################## Prédire les classes pour les données d'entraînement
+predictions <- model$predict(X)
+print("Classes prédites pour chaque observation :")
 print(predictions)
 
-# Évaluer la performance
-accuracy <- sum(predictions == as.numeric(y_test)) / length(y_test)
-cat("Accuracy:", accuracy, "\n")
+#6. ##################test de la fonction one_hot_encode
+unique_classes <- unique(iris$Species)
+one_hot_encoded_data <- model$one_hot_encode(iris$Species, unique_classes)
+print("Données après encodage one-hot :")
+print(head(one_hot_encoded_data))
 
-# Matrice de confusion pour voir la performance
-confusion_matrix <- table(Predicted = predictions, Actual = as.numeric(y_test))
-print(confusion_matrix)
+
+#7. ################## Appeler la méthode print() pour afficher les informations du modèle
+model$print()
+
+#8. ################## Instancier le modèle avec une valeur par défaut pour le seuil de sélection (exemple : 0.1)
+# Appliquer la sélection des variables sur le dataset iris
+selected_data <- model$var_select(iris[, -5], iris$Species) 
+print("Données après sélection des variables :")
+print(head(selected_data))
+
+# Comparer les prédictions aux vraies classes
+accuracy <- mean(predictions == as.numeric(y))
+cat("Précision du modèle sur les données d'entraînement :", accuracy, "\n")
 
