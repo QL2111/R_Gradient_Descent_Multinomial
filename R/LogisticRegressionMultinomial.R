@@ -1,3 +1,9 @@
+# @TODO: Implement the LogisticRegressionMultinomial class with Adam optimizer
+# 14/11 -> Le test sur credit_card_rmd a montré que le problème vient du modèle et non du préprocessing
+# On va essayer d'améliorer le modèle en utilisant un Adam optimizer
+# Faire le print, affichier les hyperparamètres, et les coefficients, nombre d'optimisation, learning rate, beta1, beta2, epsilon (Adam)
+
+
 #' @title Multinomial Logistic Regression Class
 #' @description The `LogisticRegressionMultinomial` class implements multinomial logistic regression using gradient descent.
 #' @details This class allows users to fit a multinomial logistic regression model, calculate class probabilities with softmax, and make predictions. It supports customization of the learning rate and the number of iterations for the gradient descent optimization.
@@ -17,6 +23,10 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     
     #' @field num_iterations Integer. Number of iterations for gradient descent optimization.
     num_iterations = NULL,
+
+    beta1 = 0.9,  # Parameters for momentum of Adam
+    beta2 = 0.999, # Parameters for second momentum of Adam
+    epsilon = 1e-8, # small constant
     
     #' @description Initializes a new instance of the `LogisticRegressionMultinomial` class.
     #' @param learning_rate Numeric. Sets the learning rate for gradient descent. Default is 0.01.
@@ -33,8 +43,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @details The `fit` method initializes model coefficients and applies gradient descent to minimize the loss function. It calculates class probabilities with softmax and updates coefficients based on the gradient.
     #' @return No return value; updates the model's coefficients.
     fit = function(X, y) {
-      unique_classes <- unique(y)
-      num_classes <- length(unique_classes)
+      y <- factor(y)  # Convert y to factor to ensure consistent class levels
+      unique_classes <- levels(y)  # Use levels of factor y      num_classes <- length(unique_classes)
       num_samples <- nrow(X)
       num_features <- ncol(X)
       
@@ -42,17 +52,34 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       self$coefficients <- matrix(0, nrow = num_features + 1, ncol = num_classes)
       X <- cbind(1, X)  # Add intercept term
       
+      # Variables for Adam Optimizer
+      m <- matrix(0, nrow = num_features + 1, ncol = num_classes)
+      v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
+
       for (i in 1:self$num_iterations) {
         # Compute class probabilities
         linear_model <- X %*% self$coefficients
         probabilities <- self$softmax(linear_model)
         
         # Compute the gradient
-        error <- probabilities - self$one_hot_encode(y, unique_classes)
+        one_hot_y <- self$one_hot_encode(y, unique_classes)
+        loss <- -sum(one_hot_y * log(probabilities)) / num_samples
+        cat("Iteration:", i, "Loss:", loss, "\n")
+
+        error <- probabilities - one_hot_y
         gradient <- t(X) %*% error / num_samples
+
+        # Adam Optimizer pour la mise à jour des coefficients
+        m <- self$beta1 * m + (1 - self$beta1) * gradient
+        v <- self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
+        
+        m_hat <- m / (1 - self$beta1 ^ i)
+        v_hat <- v / (1 - self$beta2 ^ i)
+
         
         # Update coefficients
-        self$coefficients <- self$coefficients - self$learning_rate * gradient
+        self$coefficients <- self$coefficients - self$learning_rate * m_hat / (sqrt(v_hat) + self$epsilon)
+        
       }
     },
     
@@ -60,7 +87,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param z A matrix of linear model outputs.
     #' @return A matrix of softmax probabilities for each class.
     softmax = function(z) {
-      exp_z <- exp(z - max(z))  # Stabilize by subtracting max value to prevent overflow
+      exp_z <- exp(z - apply(z, 1, max))  # Subtract max per row to prevent overflow
       return(exp_z / rowSums(exp_z))
     },
     
@@ -69,12 +96,14 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param unique_classes A vector of unique class labels.
     #' @return A binary matrix where each row corresponds to a sample, and each column corresponds to a class.
     one_hot_encode = function(y, unique_classes) {
+      y <- factor(y, levels = unique_classes)  # Ensure consistent class ordering
       one_hot <- matrix(0, nrow = length(y), ncol = length(unique_classes))
       for (i in 1:length(y)) {
-        one_hot[i, which(unique_classes == y[i])] <- 1
+        one_hot[i, as.integer(y[i])] <- 1
       }
       return(one_hot)
-    },
+    }
+
     
     #' @description Predicts the class labels for new data.
     #' @param X A data frame or matrix of predictors, where rows are samples and columns are features.
