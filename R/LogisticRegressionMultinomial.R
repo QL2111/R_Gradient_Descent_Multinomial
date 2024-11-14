@@ -47,7 +47,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       unique_classes <- levels(y)  # Use levels of factor y      num_classes <- length(unique_classes)
       num_samples <- nrow(X)
       num_features <- ncol(X)
-      
+      num_classes <- length(unique_classes)
       # Initialize coefficients
       self$coefficients <- matrix(0, nrow = num_features + 1, ncol = num_classes)
       X <- cbind(1, X)  # Add intercept term
@@ -102,7 +102,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
         one_hot[i, as.integer(y[i])] <- 1
       }
       return(one_hot)
-    }
+    },
 
     
     #' @description Predicts the class labels for new data.
@@ -112,7 +112,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       X <- cbind(1, X)  # Add intercept term
       linear_model <- X %*% self$coefficients
       probabilities <- self$softmax(linear_model)
-      return(apply(probabilities, 1, which.max))
+      return(apply(probabilities, 1, which.max) - 1)  # Convert back to 0 and 1 instead of 1 and 2
     },
     
     # Method to calculate variable importance

@@ -30,10 +30,10 @@ test_data <- data[-train_indices, ]
 
 # Séparer les caractéristiques et la variable cible
 X_train <- train_data[, -which(names(train_data) == "Approved")] # On essaye avec Approved au lieu d'Industry
-y_train <- train_data$Industry
+y_train <- train_data$Approved
 
 X_test <- test_data[, -which(names(test_data) == "Approved")]
-y_test <- test_data$Industry
+y_test <- test_data$Approved
 ```
 
 ```{r}
@@ -76,6 +76,8 @@ cat("Proportion of missing values in prepared test data: after preparation", mea
 X_train_matrix <- as.matrix(prepared_X_train)
 X_test_matrix <- as.matrix(prepared_X_test)
 
+# print(X_train_matrix)
+
 # Convertir la variable cible en valeurs numériques
 y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
@@ -84,12 +86,14 @@ y_test_numeric <- as.numeric(y_test)
 ```{r}
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
 model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000)
+print(model)
 model$fit(X_train_matrix, y_train_numeric)
 print("Model trained successfully")
 ```
 ```{r}
 predictions <- model$predict(X_test_matrix)
-print(X_test_matrix)
+print(predictions)
+
 # Vérifier si des prédictions ont été faites
 
 ```
