@@ -1,28 +1,52 @@
-# @TODO: Implement the LogisticRegressionMultinomial class with Adam optimizer
-# 14/11 -> Le test sur credit_card_rmd a montré que le problème vient du modèle et non du préprocessing
-# On va essayer d'améliorer le modèle en utilisant un Adam optimizer
-# Faire le print, affichier les hyperparamètres, et les coefficients, nombre d'optimisation, learning rate, beta1, beta2, epsilon (Adam)
+# Générer la documentation
+#roxygen2::roxygenise()
+
+# 14/11 -> Le test sur credit_card_rmd a montré que le problème vient du modèle et non du préprocessing #### OK
+
+#' @TODO: Implement the LogisticRegressionMultinomial class with Adam optimizer
+#' predict_proba() pour avoir les probabilités des classes
+#' comparer non seulement avec nnet mais sklearn (rapport)
+#' R shiny choisir la variable cible/explicatives
+#' Revoir le var importance(à traiter et écrire dans le rapport)
+#' Pouvoir choisir plusieurs fonction de perte (logistique, quadratique, etc.)
+#' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.)
+#' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet)
+#' Implémenter un validation set ? Plus DataPreparer ? 
+#' Paralleliser les calculs
+#' Latex formules
+#' Exportation sur github(package)
+#' Exportation en PMML
+#' 
+#' @NEXT
+#' On va essayer d'améliorer le modèle en utilisant un Adam optimizer (EN COURS)
+#' IMPLEMENTER IN EARLY STOPPING avec la fonction de loss
+#' INCORPORER D'autres métriques(summary) (F1, precision, recall, ROC AUC, etc.) #### OK
+#' Faire le print, affichier les hyperparamètres, et les coefficients, nombre d'optimisation, learning rate, beta1, beta2, epsilon (Adam)
+#' Sortie graphique, fonction de loss en fonction des itérations               #### OK
+#' @BONUS
+#' Mettre en image Docker
+#' 
 
 
-#' @title Multinomial Logistic Regression Class
-#' @description The `LogisticRegressionMultinomial` class implements multinomial logistic regression using gradient descent.
-#' @details This class allows users to fit a multinomial logistic regression model, calculate class probabilities with softmax, and make predictions. It supports customization of the learning rate and the number of iterations for the gradient descent optimization.
+#' @title Logistic Regression Multinomial Class
+#' @description The `LogisticRegressionMultinomial` class implements multinomial logistic regression using gradient descent and the Adam optimizer.
+#' @details This class allows users to fit a multinomial logistic regression model, calculate class probabilities using softmax, and make predictions. It supports features like loss tracking, variable importance calculation, and a summary of model performance.
 #'
 #' @field coefficients Matrix of model coefficients, initialized during the `fit` method.
-#' @field learning_rate Numeric value representing the learning rate for gradient descent. Default is 0.01.
-#' @field num_iterations Integer specifying the number of iterations for gradient descent. Default is 1000.
+#' @field learning_rate Numeric. Learning rate for gradient descent optimization. Default is 0.01.
+#' @field num_iterations Integer. Number of iterations for gradient descent optimization. Default is 1000.
+#' @field loss_history Numeric vector. Tracks the loss at each iteration during training.
+#' @field beta1 Numeric. Momentum parameter for Adam optimizer. Default is 0.9.
+#' @field beta2 Numeric. Second momentum parameter for Adam optimizer. Default is 0.999.
+#' @field epsilon Numeric. Small constant for numerical stability in Adam optimizer. Default is 1e-8.
 #'
 #' @export
 LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
   public = list(
-    #' @field coefficients Matrix. Stores the model's learned coefficients.
     coefficients = NULL,
-    
-    #' @field learning_rate Numeric. Learning rate for the gradient descent optimization.
     learning_rate = NULL,
-    
-    #' @field num_iterations Integer. Number of iterations for gradient descent optimization.
     num_iterations = NULL,
+    loss_history = NULL,  # Stock the loss values for each iteration
 
     beta1 = 0.9,  # Parameters for momentum of Adam
     beta2 = 0.999, # Parameters for second momentum of Adam
@@ -35,6 +59,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     initialize = function(learning_rate = 0.01, num_iterations = 1000) {
       self$learning_rate <- learning_rate
       self$num_iterations <- num_iterations
+      self$loss_history <- num_iterations
+
     },
     
     #' @description Fits the multinomial logistic regression model to the provided data.
@@ -64,6 +90,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
         # Compute the gradient
         one_hot_y <- self$one_hot_encode(y, unique_classes)
         loss <- -sum(one_hot_y * log(probabilities)) / num_samples
+        self$loss_history[i] <- loss  # Stock the loss value
+        
         cat("Iteration:", i, "Loss:", loss, "\n")
 
         error <- probabilities - one_hot_y
@@ -115,7 +143,13 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       return(apply(probabilities, 1, which.max) - 1)  # Convert back to 0 and 1 instead of 1 and 2
     },
     
-    # Method to calculate variable importance
+    #' @description This function calculates the importance of each feature based on the absolute value of the coefficients.
+    #' @return A vector of feature importance scores, sorted in descending order.
+    #' @examples
+    #' \dontrun{
+    #' model$var_importance()
+    #' }
+    #' @export
     var_importance = function() {
       coef_matrix <- abs(self$coefficients[-1, ])  # Exclude intercept term
       importance_scores <- rowSums(coef_matrix)    # Sum of absolute coefficients for each feature
@@ -128,6 +162,52 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       }
       
       return(importance_ranked)
+    },
+
+
+    #' @description This function plots the loss history to visualize the convergence of the loss function over iterations.
+    #' @details The function checks if the loss history is available and non-empty. If the loss history is empty, it stops and prompts the user to run the 'fit' method first. Otherwise, it plots the loss history.
+    #' @return A plot showing the convergence of the loss function over iterations.
+    #' @examples
+    #' \dontrun{
+    #' model$plot_loss()
+    #' }
+    #' @export 
+    plot_loss = function() {
+      # Check if we have loss history
+      if (is.null(self$loss_history) || length(self$loss_history) == 0) {
+        stop("Loss history is empty. Please run the 'fit' method first.")
+      }
+      
+      # plot loss history
+      plot(self$loss_history, type = "l", col = "blue", lwd = 2,
+           main = "Loss Function Convergence",
+           xlab = "Iterations", ylab = "Loss")
+    },
+    
+    #' @description This function provides a summary of the model's performance on the test data.
+    #' @param X_test A matrix or data frame of test features.
+    #' @param y_test A vector of true labels for the test data.
+    #' @details The function generates predictions for the test data and prints a confusion matrix. It also calculates and prints performance metrics such as F1-score, precision, and recall using the caret package.
+    #' @return Prints the confusion matrix and performance metrics.
+    #' @examples
+    #' \dontrun{
+    #' model$summary(X_test, y_test)
+    #' }
+    #' @export
+    summary = function(X_test, y_test) {
+      predictions <- self$predict(X_test)
+      
+      # Confusion Matrix
+      confusion_matrix <- table(Predicted = predictions, Actual = y_test)
+      print("Confusion Matrix:")
+      print(confusion_matrix)
+      
+      #  F1-score, precision, Recall
+      library(caret)
+      report <- confusionMatrix(as.factor(predictions), as.factor(y_test))
+      print(report)
     }
+
   )
 )
