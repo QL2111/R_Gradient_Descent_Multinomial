@@ -43,7 +43,7 @@ y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="sgd", use_early_stopping=TRUE)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="adam", use_early_stopping=TRUE)
 model$fit(X_train_matrix, y_train_numeric)
 
 # Prédire sur l'ensemble de test
@@ -58,5 +58,6 @@ predictions <- model$predict(X_test_matrix)
 model$summary()
 model$plot_loss()
 model$print(X_test_matrix, y_test_numeric)
+model$var_importance()
 
 # nolint end

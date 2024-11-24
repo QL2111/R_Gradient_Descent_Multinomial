@@ -5,28 +5,28 @@
 # 14/11 -> Le test sur credit_card_rmd a montré que le problème vient du modèle et non du préprocessing #### OK
 
 #' @TODO: 
-#' Tester avec StudentPerformance # Daniella #### A REVOIR
-#' predict_proba() pour avoir les probabilités des classes + ajouter au print # Daniella # A REVOIR DT sklearn
-#' Revoir le var importance(à traiter et écrire dans le rapport) # Awa #### Tester avec Iris et nnet 
+#' predict_proba() pour avoir les probabilités des classes + ajouter au summary # Daniella # A REVOIR DT sklearn
 #' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.) # Awa(fit) #### LaTeX SGD pas efficace ?
 #' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS
-#' Ajouter var select # Awa + Daniella #### EN COURS  
-#' Analyse Factorielle (Plus de dimension)
-#' One hot encoding one vs one et one vs all et multinomial native
+#' Ajouter var select # Awa #### EN COURS  
+#' One hot encoding one vs one et one vs all et multinomial native # Quentin
 #' Paralleliser les calculs
-#' Exportation sur github(package) # Quentin
+
 #' Exportation en PMML # Daniella 
-#' transform_input() # Daniella
-#' 
+#' Tester var_importance et comparer avec sklearn # Quentin
+#' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles, 
+#' AUC ? -> print + shiny # Quentin
 #' 
 #' @NEXT
 #' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Daniella
-#' Peut-être ne pas utiliser caret 
+#' Peut-être ne pas utiliser caret + MLmetrics
 #' @BONUS
 #' Mettre en image Docker
+#' #' Analyse Factorielle (Plus de dimension) # Awa
 #' 
 #' @DONE
 #' #' Tester avec DeviceModel # Awa  #### OK
+#' #' Revoir le var importance(à traiter et écrire dans le rapport) # Awa #### Tester avec Iris et nnet  #### OK
 #' #' Implement the LogisticRegressionMultinomial class with Adam optimizer # Quentin #### OK
 #' #' comparer non seulement avec nnet mais sklearn (rapport) # Quentin  #### OK
 #' #' R shiny choisir la variable cible/explicatives # Daniella #### OK
@@ -39,6 +39,10 @@
 #' Faire le summary, affichier les hyperparamètres #### OK 
 #' IMPLEMENTER IN EARLY STOPPING avec la fonction de loss Implémenter un validation set ? Plus DataPreparer ? # Quentin #### OK
 #' Ajouter une condition pour l'early stopping, peu de données, pas bien de faire un validation set # Quentin #### OK
+#' #' Tester avec StudentPerformance # Daniella Quentin OK #### A REVOIR
+#' #' Exportation sous forme de package R # Quentin  #### OK devtools::build() 
+
+
 #' 
 #' 
 
@@ -289,7 +293,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       cat("Optimizer: ", self$optimizer, "\n")
       cat("Learning Rate: ", self$learning_rate, "\n")
       cat("Number of Iterations: ", self$num_iterations, "\n")
-      cat("Loss Function: ", self$loss_name, "\n")
+      cat("Loss Function: ", self$loss_name, "\n")  
       if (self$optimizer == "adam") {
         cat("Beta1 (Adam): ", self$beta1, "\n")
         cat("Beta2 (Adam): ", self$beta2, "\n")
@@ -395,7 +399,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
 
       for (i in 1:self$num_iterations) {
-        linear_model <- X_train %*% self$coefficients
+        linear_model <- X_train %*% self$coefficients # à voir pourquoi il s'apelle linear_model
         probabilities <- self$softmax(linear_model)
         one_hot_y <- self$one_hot_encode(y_train, unique_classes)
         loss <- self$loss_function(one_hot_y, probabilities)
@@ -477,6 +481,26 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
         }
       }
     }
+
+    # var_importance = function() {
+    #   coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
+    #   feature_names <- colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
+      
+    #   # Importance par classe
+    #   importance_scores <- rowMeans(coef_matrix)  # Moyenne des coefficients absolus pour toutes les classes
+    #   importance_ranked <- sort(importance_scores, decreasing = TRUE) # Trier par ordre décroissant
+      
+    #   # Afficher les importances
+    #   cat("Variable Importance (sorted):\n")
+    #   for (i in seq_along(importance_ranked)) {
+    #     cat(names(importance_ranked)[i], ": ", round(importance_ranked[i], 4), "\n")
+    #   }
+      
+    #   # Retourner les scores
+    #   #return(importance_ranked)
+    # }
+
+    
   )
 )
 
