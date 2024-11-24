@@ -1,31 +1,52 @@
+# nolint start
 # Générer la documentation
-#roxygen2::roxygenise()
-library(glmnet)
+# roxygen2::roxygenise()
+
 # 14/11 -> Le test sur credit_card_rmd a montré que le problème vient du modèle et non du préprocessing #### OK
 
-#' @TODO: Implement the LogisticRegressionMultinomial class with Adam optimizer
-#' predict_proba() pour avoir les probabilités des classes
-#' comparer non seulement avec nnet mais sklearn (rapport)
-#' R shiny choisir la variable cible/explicatives
-#' Revoir le var importance(à traiter et écrire dans le rapport)
-#' Pouvoir choisir plusieurs fonction de perte (logistique, quadratique, etc.)
-#' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.)
-#' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet)
-#' Implémenter un validation set ? Plus DataPreparer ? 
+#' @TODO: 
+#' predict_proba() pour avoir les probabilités des classes + ajouter au summary # Daniella # A REVOIR DT sklearn
+#' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.) # Awa(fit) #### LaTeX SGD pas efficace ?
+#' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS
+#' Ajouter var select # Awa #### EN COURS  
+#' One hot encoding one vs one et one vs all et multinomial native # Quentin
 #' Paralleliser les calculs
-#' Latex formules
-#' Exportation sur github(package)
-#' Exportation en PMML
+
+#' Exportation en PMML # Daniella 
+#' Tester var_importance et comparer avec sklearn # Quentin
+#' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles, 
+#' AUC ? -> print + shiny # Quentin
 #' 
 #' @NEXT
-#' On va essayer d'améliorer le modèle en utilisant un Adam optimizer (EN COURS)
-#' IMPLEMENTER IN EARLY STOPPING avec la fonction de loss
-#' INCORPORER D'autres métriques(summary) (F1, precision, recall, ROC AUC, etc.) #### OK
-#' Faire le print, affichier les hyperparamètres, et les coefficients, nombre d'optimisation, learning rate, beta1, beta2, epsilon (Adam)
-#' Sortie graphique, fonction de loss en fonction des itérations               #### OK
+#' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Daniella
+#' Peut-être ne pas utiliser caret + MLmetrics
 #' @BONUS
 #' Mettre en image Docker
+#' #' Analyse Factorielle (Plus de dimension) # Awa
 #' 
+#' @DONE
+#' #' Tester avec DeviceModel # Awa  #### OK
+#' #' Revoir le var importance(à traiter et écrire dans le rapport) # Awa #### Tester avec Iris et nnet  #### OK
+#' #' Implement the LogisticRegressionMultinomial class with Adam optimizer # Quentin #### OK
+#' #' comparer non seulement avec nnet mais sklearn (rapport) # Quentin  #### OK
+#' #' R shiny choisir la variable cible/explicatives # Daniella #### OK
+#' Pouvoir choisir plusieurs fonction de perte (logistique, quadratique, etc.) # Quentin # A tester(deviance) https://eric.univ-lyon2.fr/ricco/cours/slides/logistic_regression_ml.pdf
+#' On va essayer d'améliorer le modèle en utilisant un Adam optimizer  # Quentin #### OK
+#' Latex formules # Quentin -> Overleaf + plan(table des matières)      #### OK
+#' Sortie graphique, fonction de loss en fonction des itérations               #### OK
+#' Completer le summary avec ma fonction de loss # Quentin #### OK
+#'  nombre d'optimisation, learning rate, beta1, beta2, epsilon  (Adam), # Awa #### OK
+#' Faire le summary, affichier les hyperparamètres #### OK 
+#' IMPLEMENTER IN EARLY STOPPING avec la fonction de loss Implémenter un validation set ? Plus DataPreparer ? # Quentin #### OK
+#' Ajouter une condition pour l'early stopping, peu de données, pas bien de faire un validation set # Quentin #### OK
+#' #' Tester avec StudentPerformance # Daniella Quentin OK #### A REVOIR
+#' #' Exportation sous forme de package R # Quentin  #### OK devtools::build() 
+
+
+#' 
+#' 
+
+
 
 
 #' @title Logistic Regression Multinomial Class
@@ -47,78 +68,145 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     learning_rate = NULL,
     num_iterations = NULL,
     loss_history = NULL,  # Stock the loss values for each iteration
+    loss_function = NULL,  # Loss function to use
+    loss_name = NULL,  # Name of the loss function
 
-    beta1 = 0.9,  # Parameters for momentum of Adam
-    beta2 = 0.999, # Parameters for second momentum of Adam
-    epsilon = 1e-8, # small constant
-    optimizer = "adam", # Par défaut, utiliser Adam ou sgd
-    
+    optimizer = NULL, # Optimizer to use
+    beta1 = NULL,  # Parameters for momentum of Adam
+    beta2 = NULL, # Parameters for second momentum of Adam
+    epsilon = NULL, # small constant
+
+    use_early_stopping = NULL, # Use early stopping
+    patience = NULL, # Early stopping patience
     
     #' @description Initializes a new instance of the `LogisticRegressionMultinomial` class.
     #' @param learning_rate Numeric. Sets the learning rate for gradient descent. Default is 0.01.
     #' @param num_iterations Integer. Specifies the number of gradient descent iterations. Default is 1000.
+    #' @param loss Character. Specifies the loss function to use. Options are "logistique", "quadratique", "deviance". Default is "logistique".
+    #' @param optimizer Character. Specifies the optimizer to use. Options are "adam", "sgd". Default is "adam".
+    #' @param use_early_stopping Logical. Whether to use early stopping. Default is TRUE.
+    #' @param patience Integer. Number of iterations to wait for improvement before stopping early. Default is 10.
     #' @return A new `LogisticRegressionMultinomial` object.
-    initialize = function(learning_rate = 0.01, num_iterations = 1000, optimizer = "sgd") {
-      self$learning_rate <- learning_rate
-      self$num_iterations <- num_iterations
-      self$loss_history <- numeric(num_iterations)
-      self$optimizer <- optimizer
+    initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, use_early_stopping = TRUE) {
+      self$learning_rate = learning_rate
+      self$num_iterations = num_iterations
+      self$loss_history = numeric(num_iterations)
+      self$optimizer = optimizer
+      self$loss_name = loss  # Store the name of the loss function
+      self$beta1 = beta1
+      self$beta2 = beta2
+      self$epsilon = epsilon
+      self$patience <- patience
+      self$use_early_stopping <- use_early_stopping
 
+
+      
+      if (loss == "logistique") {
+        self$loss_function = self$log_loss
+      } else if (loss == "quadratique") {
+        self$loss_function = self$mse_loss
+      } else {
+        stop("Fonction de perte non reconnue")
+      }
     },
+
     
     #' @description Fits the multinomial logistic regression model to the provided data.
     #' @param X A data frame or matrix of predictors (features), where rows represent samples and columns represent features.
     #' @param y A factor or character vector representing the response variable (target classes).
+    #' @param validation_split Numeric. Fraction of the training data to be used as validation data. Default is 0.2.
     #' @details The `fit` method initializes model coefficients and applies gradient descent to minimize the loss function. It calculates class probabilities with softmax and updates coefficients based on the gradient.
     #' @return No return value; updates the model's coefficients.
-    fit = function(X, y) {
-      y <- factor(y)
-      unique_classes <- levels(y)
-      num_classes <- length(unique_classes)
-      num_samples <- nrow(X)
-      num_features <- ncol(X)
+    fit = function(X, y, validation_split = 0.2) {
+      y = factor(y)  # Convert y to factor to ensure consistent class levels
+      unique_classes = levels(y)  # Use levels of factor y      num_classes <- length(unique_classes)
+      num_samples = nrow(X)
+      num_features = ncol(X)
+      num_classes = length(unique_classes)
+
+      if (self$use_early_stopping) {
+        # Split data into training and validation sets
+        set.seed(123)  # For reproducibility
+        validation_indices <- sample(1:num_samples, size = floor(validation_split * num_samples))
+        X_val <- X[validation_indices, ]
+        y_val <- y[validation_indices]
+        X_train <- X[-validation_indices, ]
+        y_train <- y[-validation_indices]
+      } else {
+        X_train <- X
+        y_train <- y
+        X_val <- NULL
+        y_val <- NULL
+      }
       
-      # Initialisation des coefficients
+      # Initialize coefficients
       self$coefficients <- matrix(0, nrow = num_features + 1, ncol = num_classes)
-      X <- cbind(1, X)
+      X_train <- cbind(1, X_train)  # Add intercept term
+      if (!is.null(X_val)) {
+        X_val <- cbind(1, X_val)  # Add intercept term
+      }
       
-      # Variables pour Adam
-      m <- matrix(0, nrow = num_features + 1, ncol = num_classes)
-      v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
+      best_loss <- Inf
+      patience_counter <- 0
       
-      for (i in 1:self$num_iterations) {
-        linear_model <- X %*% self$coefficients
-        probabilities <- self$softmax(linear_model)
-        one_hot_y <- self$one_hot_encode(y, unique_classes)
-        loss <- -sum(one_hot_y * log(probabilities)) / num_samples
-        self$loss_history[i] <- loss
-        cat("Iteration:", i, "Loss:", loss, "\n")
-        
-        error <- probabilities - one_hot_y
-        gradient <- t(X) %*% error / num_samples
-        
-        if (self$optimizer == "adam") {
-          # Mise à jour avec Adam
-          m <- self$beta1 * m + (1 - self$beta1) * gradient
-          v <- self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
-          m_hat <- m / (1 - self$beta1 ^ i)
-          v_hat <- v / (1 - self$beta2 ^ i)
-          self$coefficients <- self$coefficients - self$learning_rate * m_hat / (sqrt(v_hat) + self$epsilon)
-        } else if (self$optimizer == "sgd") {
-          
-          # Mise à jour avec SGD
-          self$coefficients <- self$coefficients - self$learning_rate * gradient
-        } else {
-          stop("Unsupported optimizer: ", self$optimizer)
-        }
+      if (self$optimizer == "adam") {
+        self$adam_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+      } else if (self$optimizer == "sgd") {
+        self$sgd_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+      } else {
+        stop("Optimiseur non reconnu")
       }
     },
+
+    # Code AWA -> Performance du SGD faible 
+    # fit = function(X, y) {
+    #   y <- factor(y)
+    #   unique_classes <- levels(y)
+    #   num_classes <- length(unique_classes)
+    #   num_samples <- nrow(X)
+    #   num_features <- ncol(X)
+      
+    #   # Initialisation des coefficients
+    #   self$coefficients <- matrix(0, nrow = num_features + 1, ncol = num_classes)
+    #   X <- cbind(1, X)
+      
+    #   # Variables pour Adam
+    #   m <- matrix(0, nrow = num_features + 1, ncol = num_classes)
+    #   v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
+      
+    #   for (i in 1:self$num_iterations) {
+    #     linear_model <- X %*% self$coefficients
+    #     probabilities <- self$softmax(linear_model)
+    #     one_hot_y <- self$one_hot_encode(y, unique_classes)
+    #     loss <- -sum(one_hot_y * log(probabilities)) / num_samples
+    #     self$loss_history[i] <- loss
+    #     cat("Iteration:", i, "Loss:", loss, "\n")
+        
+    #     error <- probabilities - one_hot_y
+    #     gradient <- t(X) %*% error / num_samples
+        
+    #     if (self$optimizer == "adam") {
+    #       # Mise à jour avec Adam
+    #       m <- self$beta1 * m + (1 - self$beta1) * gradient
+    #       v <- self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
+    #       m_hat <- m / (1 - self$beta1 ^ i)
+    #       v_hat <- v / (1 - self$beta2 ^ i)
+    #       self$coefficients <- self$coefficients - self$learning_rate * m_hat / (sqrt(v_hat) + self$epsilon)
+    #     } else if (self$optimizer == "sgd") {
+          
+    #       # Mise à jour avec SGD
+    #       self$coefficients <- self$coefficients - self$learning_rate * gradient
+    #     } else {
+    #       stop("Unsupported optimizer: ", self$optimizer)
+    #     }
+    #   }
+    # },
     
     #' @description Computes the softmax of the input matrix.
     #' @param z A matrix of linear model outputs.
     #' @return A matrix of softmax probabilities for each class.
     softmax = function(z) {
-      exp_z <- exp(z - apply(z, 1, max))  # Subtract max per row to prevent overflow
+      exp_z = exp(z - apply(z, 1, max))  # Subtract max per row to prevent overflow
       return(exp_z / rowSums(exp_z))
     },
     
@@ -127,8 +215,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param unique_classes A vector of unique class labels.
     #' @return A binary matrix where each row corresponds to a sample, and each column corresponds to a class.
     one_hot_encode = function(y, unique_classes) {
-      y <- factor(y, levels = unique_classes)  # Ensure consistent class ordering
-      one_hot <- matrix(0, nrow = length(y), ncol = length(unique_classes))
+      y = factor(y, levels = unique_classes)  # Ensure consistent class ordering
+      one_hot = matrix(0, nrow = length(y), ncol = length(unique_classes))
       for (i in 1:length(y)) {
         one_hot[i, as.integer(y[i])] <- 1
       }
@@ -143,7 +231,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       X <- cbind(1, X)  # Add intercept term
       linear_model <- X %*% self$coefficients
       probabilities <- self$softmax(linear_model)
-      return(apply(probabilities, 1, which.max) - 1)  # Convert back to 0 and 1 instead of 1 and 2
+      return(apply(probabilities, 1, which.max))  # Convert back to 0 and 1 instead of 1 and 2
     },
     
     #' @description This function calculates the importance of each feature based on the absolute value of the coefficients.
@@ -153,41 +241,20 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' model$var_importance()
     #' }
     #' @export
-    
     var_importance = function() {
-      coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
-      feature_names <- colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
+      coef_matrix <- abs(self$coefficients[-1, ])  # Exclude intercept term
+      importance_scores <- rowSums(coef_matrix)    # Sum of absolute coefficients for each feature
+      importance_ranked <- sort(importance_scores, decreasing = TRUE)
       
-      # Importance par classe
-      importance_scores <- rowMeans(coef_matrix)  # Moyenne des coefficients absolus pour toutes les classes
-      importance_ranked <- sort(importance_scores, decreasing = TRUE) # Trier par ordre décroissant
-      
-      # Afficher les importances
+      # Affichage des importances
       cat("Variable Importance (sorted):\n")
-      for (i in seq_along(importance_ranked)) {
-        cat(names(importance_ranked)[i], ": ", round(importance_ranked[i], 4), "\n")
+      for (i in 1:length(importance_ranked)) {
+        cat(names(importance_ranked)[i], ": ", importance_ranked[i], "\n")
       }
       
-      # Retourner les scores
       #return(importance_ranked)
     },
-    
-    #' @description Selects the most important variables based on their predictive importance.
-    #' @param top_n Integer. The number of top variables to keep based on their importance. Default is 5.
-    #' @return A data frame or matrix with only the selected variables.
-    #' @examples
-    #' \dontrun{
-    #' selected_data <- model$var_select(X_train, top_n = 5)
-    #' }
-    #' @export
-    #' 
-    
-    #########################################var_select###########################################
-    #var_select = function(X, y, threshold = 0.1) {
-      
-    #},
-    
-    
+
 
     #' @description This function plots the loss history to visualize the convergence of the loss function over iterations.
     #' @details The function checks if the loss history is available and non-empty. If the loss history is empty, it stops and prompts the user to run the 'fit' method first. Otherwise, it plots the loss history.
@@ -209,47 +276,230 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
            xlab = "Iterations", ylab = "Loss")
     },
     
-    #' @description This function provides a summary of the model's performance on the test data.
-    #' @param X_test A matrix or data frame of test features.
-    #' @param y_test A vector of true labels for the test data.
-    #' @details The function generates predictions for the test data and prints a confusion matrix. It also calculates and prints performance metrics such as F1-score, precision, and recall using the caret package.
-    #' @return Prints the confusion matrix and performance metrics.
+    #' @description Displays the hyperparameters of the trained model.
+    #' @details This function prints out the hyperparameters of the model, including the optimizer, learning rate, number of iterations, and loss function. If the optimizer is "adam", it also prints out the Adam-specific parameters: Beta1, Beta2, and Epsilon.
+    #' @return None. This function is used for its side effect of printing the model's hyperparameters.
     #' @examples
     #' \dontrun{
-    #' model$summary(X_test, y_test)
+    #' model$summary()
     #' }
-    #' @export
-    #' 
-    summary = function(X_test, y_test) {
-      predictions <- self$predict(X_test)
-      
-      # Confusion Matrix
-      confusion_matrix <- table(Predicted = predictions, Actual = y_test)
-      cat("=== Confusion Matrix ===\n")
-      print(confusion_matrix)
-      
+    # Paramètres du modèle
+    summary = function() {
+     # En attendant d'avoir le print
       # Model Hyperparameters
       cat("\n=== Model Hyperparameters ===\n")
       cat("Optimizer: ", self$optimizer, "\n")
       cat("Learning Rate: ", self$learning_rate, "\n")
       cat("Number of Iterations: ", self$num_iterations, "\n")
+      cat("Loss Function: ", self$loss_name, "\n")  
       if (self$optimizer == "adam") {
         cat("Beta1 (Adam): ", self$beta1, "\n")
         cat("Beta2 (Adam): ", self$beta2, "\n")
         cat("Epsilon (Adam): ", self$epsilon, "\n")
       }
+    },
+
+    #' @description This function prints the results of the logistic regression multinomial model on the test data.
+    #' @param X_test A data frame or matrix containing the test features.
+    #' @param y_test A vector containing the true labels for the test data.
+    #'
+    #' @return This function does not return a value. It prints the confusion matrix, classification report, and F1 score.
+    #'
+    #' @details
+    #' The function performs the following steps:
+    #' \itemize{
+    #'   \item Predicts the labels for the test data using the model.
+    #'   \item Computes and prints the confusion matrix.
+    #'   \item Computes and prints the classification report using the `caret` package.
+    #'   \item Computes and prints the weighted F1 score using the `MLmetrics` package.
+    #' }
+    #'
+    #' @examples
+    #' \dontrun{
+    #' model$print(X_test, y_test)
+    #' }
+    #'
+    #' @import caret
+    #' @import MLmetrics
+    #' @export
+    print = function(X_test, y_test) {
+      predictions <- self$predict(X_test)
       
-      # Coefficients
-      cat("\n=== Model Coefficients ===\n")
-      for (class_idx in 1:ncol(self$coefficients)) {
-        cat("Class ", class_idx, ":\n")
-        coef_values <- self$coefficients[, class_idx]
-        names(coef_values) <- c("(Intercept)", colnames(X_test))
-        print(round(coef_values, 4))
+      # Confusion Matrix
+      confusion_matrix <- table(Predicted = predictions, Actual = y_test)
+      print("Confusion Matrix:")
+      print(confusion_matrix)
+      
+      #  F1-score, precision, Recall
+      library(caret)
+      library(MLmetrics)
+      report <- confusionMatrix(as.factor(predictions), as.factor(y_test))
+      print(report)
+      
+      f1_weighted <- F1_Score(y_pred = predictions, y_true = y_test)
+      cat("F1 Score:", f1_weighted, "\n")
+    },
+    
+      
+      
+
+    #' @description This function computes the log loss, also known as logistic loss or cross-entropy loss, 
+    #' between the true labels and the predicted probabilities.
+    #'
+    #' @param y_true A numeric vector of true labels.
+    #' @param y_pred A numeric vector of predicted probabilities.
+    #' @return A numeric value representing the log loss.
+    #' @examples
+    #' y_true <- c(1, 0, 1, 0)
+    #' y_pred <- c(0.9, 0.1, 0.8, 0.2)
+    #' log_loss(y_true, y_pred)
+    #' @export
+    # LOSS FUNCTIONS
+    log_loss = function(y_true, y_pred) {
+      epsilon <- 1e-15  # Small value to prevent log(0)
+      y_pred <- pmax(pmin(y_pred, 1 - epsilon), epsilon) 
+      loss <- -sum(y_true * log(y_pred))  # Régularisez par 1/N ?
+      return(loss)
+
+    },
+
+    
+    #' @description This function computes the mean squared error (MSE) loss between the true labels 
+    #' and the predicted values.
+    #'
+    #' @param y_true A numeric vector of true labels.
+    #' @param y_pred A numeric vector of predicted values.
+    #' @return A numeric value representing the MSE loss.
+    #' @examples
+    #' y_true <- c(1, 0, 1, 0)
+    #' y_pred <- c(0.9, 0.1, 0.8, 0.2)
+    #' mse_loss(y_true, y_pred)
+    #' @export
+    #'
+    mse_loss = function(y_true, y_pred) {
+      0.5 * mean((y_true - y_pred)^2)
+    },
+
+    # mse_loss = function(y_true, y_pred) { # MSE MULTINOMIALE?
+    #   0.5 * sum((y_true - y_pred)^2)
+    # }
+
+
+    #' @description Adam optimizer for updating coefficients.
+    #' @param X Matrix of predictors with intercept term added.
+    #' @param y Factor vector of response variable.
+    #' @param unique_classes Vector of unique class labels.
+    #' @param num_samples Number of samples.
+    #' @param num_features Number of features.
+    #' @param num_classes Number of classes.
+    adam_optimizer = function(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter) {
+      m <- matrix(0, nrow = num_features + 1, ncol = num_classes)
+      v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
+
+      for (i in 1:self$num_iterations) {
+        linear_model <- X_train %*% self$coefficients # à voir pourquoi il s'apelle linear_model
+        probabilities <- self$softmax(linear_model)
+        one_hot_y <- self$one_hot_encode(y_train, unique_classes)
+        loss <- self$loss_function(one_hot_y, probabilities)
+        self$loss_history[i] <- loss
+        
+        cat("Iteration:", i, "Loss:", loss, "\n")
+
+        error <- probabilities - one_hot_y
+        gradient <- t(X_train) %*% error / num_samples
+
+        m <- self$beta1 * m + (1 - self$beta1) * gradient
+        v <- self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
+        
+        m_hat <- m / (1 - self$beta1 ^ i)
+        v_hat <- v / (1 - self$beta2 ^ i)
+
+        self$coefficients <- self$coefficients - self$learning_rate * m_hat / (sqrt(v_hat) + self$epsilon)
+
+        # Early stopping
+        if (self$use_early_stopping) {
+          val_probabilities <- self$softmax(X_val %*% self$coefficients)
+          val_one_hot_y <- self$one_hot_encode(y_val, unique_classes)
+          val_loss <- self$loss_function(val_one_hot_y, val_probabilities)
+          
+          if (val_loss < best_loss) {
+            best_loss <- val_loss
+            patience_counter <- 0
+          } else {
+            patience_counter <- patience_counter + 1
+          }
+          
+          if (patience_counter >= self$patience) {
+            cat("Early stopping at iteration:", i, "with validation loss:", val_loss, "\n")
+            break
+          }
+        }
       }
-      
-      cat("\n=== End of Summary ===\n")
+    },
+
+    #' @description SGD optimizer for updating coefficients.
+    #' @param X Matrix of predictors with intercept term added.
+    #' @param y Factor vector of response variable.
+    #' @param unique_classes Vector of unique class labels.
+    #' @param num_samples Number of samples.
+    #' @param num_features Number of features.
+    #' @param num_classes Number of classes.
+    sgd_optimizer = function(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter) {
+      for (i in 1:self$num_iterations) {
+        linear_model <- X_train %*% self$coefficients
+        probabilities <- self$softmax(linear_model)
+        one_hot_y <- self$one_hot_encode(y_train, unique_classes)
+        loss <- self$loss_function(one_hot_y, probabilities)
+        self$loss_history[i] <- loss
+        
+        cat("Iteration:", i, "Loss:", loss, "\n")
+
+        error <- probabilities - one_hot_y
+        gradient <- t(X_train) %*% error / num_samples
+
+        self$coefficients <- self$coefficients - self$learning_rate * gradient
+
+        # Early stopping
+        if (self$use_early_stopping) {
+          val_probabilities <- self$softmax(X_val %*% self$coefficients)
+          val_one_hot_y <- self$one_hot_encode(y_val, unique_classes)
+          val_loss <- self$loss_function(val_one_hot_y, val_probabilities)
+          
+          if (val_loss < best_loss) {
+            best_loss <- val_loss
+            patience_counter <- 0
+          } else {
+            patience_counter <- patience_counter + 1
+          }
+          
+          if (patience_counter >= self$patience) {
+            cat("Early stopping at iteration:", i, "with validation loss:", val_loss, "\n")
+            break
+          }
+        }
+      }
     }
+
+    # var_importance = function() {
+    #   coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
+    #   feature_names <- colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
+      
+    #   # Importance par classe
+    #   importance_scores <- rowMeans(coef_matrix)  # Moyenne des coefficients absolus pour toutes les classes
+    #   importance_ranked <- sort(importance_scores, decreasing = TRUE) # Trier par ordre décroissant
+      
+    #   # Afficher les importances
+    #   cat("Variable Importance (sorted):\n")
+    #   for (i in seq_along(importance_ranked)) {
+    #     cat(names(importance_ranked)[i], ": ", round(importance_ranked[i], 4), "\n")
+    #   }
+      
+    #   # Retourner les scores
+    #   #return(importance_ranked)
+    # }
+
     
   )
 )
+
+# nolint end
