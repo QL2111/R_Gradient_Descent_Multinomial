@@ -20,7 +20,6 @@
 #' 
 #' 
 #' @NEXT
-#' IMPLEMENTER IN EARLY STOPPING avec la fonction de loss Implémenter un validation set ? Plus DataPreparer ? # Quentin
 #' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Daniella
 #' Peut-être ne pas utiliser caret 
 #' @BONUS
@@ -38,6 +37,8 @@
 #' Completer le summary avec ma fonction de loss # Quentin #### OK
 #'  nombre d'optimisation, learning rate, beta1, beta2, epsilon  (Adam), # Awa #### OK
 #' Faire le summary, affichier les hyperparamètres #### OK 
+#' IMPLEMENTER IN EARLY STOPPING avec la fonction de loss Implémenter un validation set ? Plus DataPreparer ? # Quentin #### OK
+#' Ajouter une condition pour l'early stopping, peu de données, pas bien de faire un validation set # Quentin #### OK
 #' 
 #' 
 
@@ -70,13 +71,19 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     beta1 = NULL,  # Parameters for momentum of Adam
     beta2 = NULL, # Parameters for second momentum of Adam
     epsilon = NULL, # small constant
+
+    use_early_stopping = NULL, # Use early stopping
+    patience = NULL, # Early stopping patience
     
     #' @description Initializes a new instance of the `LogisticRegressionMultinomial` class.
     #' @param learning_rate Numeric. Sets the learning rate for gradient descent. Default is 0.01.
     #' @param num_iterations Integer. Specifies the number of gradient descent iterations. Default is 1000.
     #' @param loss Character. Specifies the loss function to use. Options are "logistique", "quadratique", "deviance". Default is "logistique".
+    #' @param optimizer Character. Specifies the optimizer to use. Options are "adam", "sgd". Default is "adam".
+    #' @param use_early_stopping Logical. Whether to use early stopping. Default is TRUE.
+    #' @param patience Integer. Number of iterations to wait for improvement before stopping early. Default is 10.
     #' @return A new `LogisticRegressionMultinomial` object.
-    initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8) {
+    initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, use_early_stopping = TRUE) {
       self$learning_rate = learning_rate
       self$num_iterations = num_iterations
       self$loss_history = numeric(num_iterations)
@@ -85,7 +92,10 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       self$beta1 = beta1
       self$beta2 = beta2
       self$epsilon = epsilon
-      
+      self$patience <- patience
+      self$use_early_stopping <- use_early_stopping
+
+
       
       if (loss == "logistique") {
         self$loss_function = self$log_loss
@@ -100,22 +110,45 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @description Fits the multinomial logistic regression model to the provided data.
     #' @param X A data frame or matrix of predictors (features), where rows represent samples and columns represent features.
     #' @param y A factor or character vector representing the response variable (target classes).
+    #' @param validation_split Numeric. Fraction of the training data to be used as validation data. Default is 0.2.
     #' @details The `fit` method initializes model coefficients and applies gradient descent to minimize the loss function. It calculates class probabilities with softmax and updates coefficients based on the gradient.
     #' @return No return value; updates the model's coefficients.
-    fit = function(X, y) {
+    fit = function(X, y, validation_split = 0.2) {
       y = factor(y)  # Convert y to factor to ensure consistent class levels
       unique_classes = levels(y)  # Use levels of factor y      num_classes <- length(unique_classes)
       num_samples = nrow(X)
       num_features = ncol(X)
       num_classes = length(unique_classes)
+
+      if (self$use_early_stopping) {
+        # Split data into training and validation sets
+        set.seed(123)  # For reproducibility
+        validation_indices <- sample(1:num_samples, size = floor(validation_split * num_samples))
+        X_val <- X[validation_indices, ]
+        y_val <- y[validation_indices]
+        X_train <- X[-validation_indices, ]
+        y_train <- y[-validation_indices]
+      } else {
+        X_train <- X
+        y_train <- y
+        X_val <- NULL
+        y_val <- NULL
+      }
+      
       # Initialize coefficients
-      self$coefficients = matrix(0, nrow = num_features + 1, ncol = num_classes)
-      X = cbind(1, X)  # Add intercept term
+      self$coefficients <- matrix(0, nrow = num_features + 1, ncol = num_classes)
+      X_train <- cbind(1, X_train)  # Add intercept term
+      if (!is.null(X_val)) {
+        X_val <- cbind(1, X_val)  # Add intercept term
+      }
+      
+      best_loss <- Inf
+      patience_counter <- 0
       
       if (self$optimizer == "adam") {
-        self$adam_optimizer(X, y, unique_classes, num_samples, num_features, num_classes)
+        self$adam_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
       } else if (self$optimizer == "sgd") {
-        self$sgd_optimizer(X, y, unique_classes, num_samples, num_features, num_classes)
+        self$sgd_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
       } else {
         stop("Optimiseur non reconnu")
       }
@@ -357,21 +390,21 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param num_samples Number of samples.
     #' @param num_features Number of features.
     #' @param num_classes Number of classes.
-    adam_optimizer = function(X, y, unique_classes, num_samples, num_features, num_classes) {
+    adam_optimizer = function(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter) {
       m <- matrix(0, nrow = num_features + 1, ncol = num_classes)
       v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
 
       for (i in 1:self$num_iterations) {
-        linear_model <- X %*% self$coefficients
+        linear_model <- X_train %*% self$coefficients
         probabilities <- self$softmax(linear_model)
-        one_hot_y <- self$one_hot_encode(y, unique_classes)
+        one_hot_y <- self$one_hot_encode(y_train, unique_classes)
         loss <- self$loss_function(one_hot_y, probabilities)
         self$loss_history[i] <- loss
         
         cat("Iteration:", i, "Loss:", loss, "\n")
 
         error <- probabilities - one_hot_y
-        gradient <- t(X) %*% error / num_samples
+        gradient <- t(X_train) %*% error / num_samples
 
         m <- self$beta1 * m + (1 - self$beta1) * gradient
         v <- self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
@@ -380,6 +413,25 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
         v_hat <- v / (1 - self$beta2 ^ i)
 
         self$coefficients <- self$coefficients - self$learning_rate * m_hat / (sqrt(v_hat) + self$epsilon)
+
+        # Early stopping
+        if (self$use_early_stopping) {
+          val_probabilities <- self$softmax(X_val %*% self$coefficients)
+          val_one_hot_y <- self$one_hot_encode(y_val, unique_classes)
+          val_loss <- self$loss_function(val_one_hot_y, val_probabilities)
+          
+          if (val_loss < best_loss) {
+            best_loss <- val_loss
+            patience_counter <- 0
+          } else {
+            patience_counter <- patience_counter + 1
+          }
+          
+          if (patience_counter >= self$patience) {
+            cat("Early stopping at iteration:", i, "with validation loss:", val_loss, "\n")
+            break
+          }
+        }
       }
     },
 
@@ -390,20 +442,39 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param num_samples Number of samples.
     #' @param num_features Number of features.
     #' @param num_classes Number of classes.
-    sgd_optimizer = function(X, y, unique_classes, num_samples, num_features, num_classes) {
+    sgd_optimizer = function(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter) {
       for (i in 1:self$num_iterations) {
-        linear_model <- X %*% self$coefficients
+        linear_model <- X_train %*% self$coefficients
         probabilities <- self$softmax(linear_model)
-        one_hot_y <- self$one_hot_encode(y, unique_classes)
+        one_hot_y <- self$one_hot_encode(y_train, unique_classes)
         loss <- self$loss_function(one_hot_y, probabilities)
         self$loss_history[i] <- loss
         
         cat("Iteration:", i, "Loss:", loss, "\n")
 
         error <- probabilities - one_hot_y
-        gradient <- t(X) %*% error / num_samples
+        gradient <- t(X_train) %*% error / num_samples
 
         self$coefficients <- self$coefficients - self$learning_rate * gradient
+
+        # Early stopping
+        if (self$use_early_stopping) {
+          val_probabilities <- self$softmax(X_val %*% self$coefficients)
+          val_one_hot_y <- self$one_hot_encode(y_val, unique_classes)
+          val_loss <- self$loss_function(val_one_hot_y, val_probabilities)
+          
+          if (val_loss < best_loss) {
+            best_loss <- val_loss
+            patience_counter <- 0
+          } else {
+            patience_counter <- patience_counter + 1
+          }
+          
+          if (patience_counter >= self$patience) {
+            cat("Early stopping at iteration:", i, "with validation loss:", val_loss, "\n")
+            break
+          }
+        }
       }
     }
   )
