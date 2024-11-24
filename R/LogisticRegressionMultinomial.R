@@ -1,31 +1,42 @@
+# nolint start
 # Générer la documentation
-#roxygen2::roxygenise()
+# roxygen2::roxygenise()
 
 # 14/11 -> Le test sur credit_card_rmd a montré que le problème vient du modèle et non du préprocessing #### OK
 
-#' @TODO: Implement the LogisticRegressionMultinomial class with Adam optimizer
-#' predict_proba() pour avoir les probabilités des classes
-#' comparer non seulement avec nnet mais sklearn (rapport)
-#' R shiny choisir la variable cible/explicatives
-#' Revoir le var importance(à traiter et écrire dans le rapport)
-#' Pouvoir choisir plusieurs fonction de perte (logistique, quadratique, etc.)
-#' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.)
-#' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet)
-#' Implémenter un validation set ? Plus DataPreparer ? 
+#' @TODO: 
+#' Tester avec DeviceModel # Awa  #### OK
+#' Tester avec StudentPerformance # Daniella #### A REVOIR
+#' Implement the LogisticRegressionMultinomial class with Adam optimizer # Quentin #### OK
+#' predict_proba() pour avoir les probabilités des classes # Daniella # A REVOIR DT sklearn
+#' comparer non seulement avec nnet mais sklearn (rapport) # Quentin  #### OK
+#' R shiny choisir la variable cible/explicatives # Daniella #### OK
+#' Revoir le var importance(à traiter et écrire dans le rapport) # Awa #### Tester avec Iris et nnet 
+#' Pouvoir choisir plusieurs fonction de perte (logistique, quadratique, etc.) # Quentin # A tester(deviance) https://eric.univ-lyon2.fr/ricco/cours/slides/logistic_regression_ml.pdf
+#' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.) # Awa(fit) #### LaTeX
+#' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS
+#' Ajouter var select # Awa + Daniella #### EN COURS  
+#' 
 #' Paralleliser les calculs
-#' Latex formules
-#' Exportation sur github(package)
-#' Exportation en PMML
+#' Latex formules # Quentin -> Overleaf + plan(table des matières)      #### OK
+#' Exportation sur github(package) # Quentin
+#' Exportation en PMML # Daniella 
+#' transform_input() # Daniella
 #' 
 #' @NEXT
-#' On va essayer d'améliorer le modèle en utilisant un Adam optimizer (EN COURS)
-#' IMPLEMENTER IN EARLY STOPPING avec la fonction de loss
-#' INCORPORER D'autres métriques(summary) (F1, precision, recall, ROC AUC, etc.) #### OK
-#' Faire le print, affichier les hyperparamètres, et les coefficients, nombre d'optimisation, learning rate, beta1, beta2, epsilon (Adam)
+#' On va essayer d'améliorer le modèle en utilisant un Adam optimizer  # Quentin #### OK
+#' IMPLEMENTER IN EARLY STOPPING avec la fonction de loss Implémenter un validation set ? Plus DataPreparer ? # Quentin
+#' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Daniella
+#' Faire le summary, affichier les hyperparamètres #### OK 
+#' et les coefficients, nombre d'optimisation, learning rate, beta1, beta2, epsilon  (Adam), # Awa #### OK
+#' Peut-être ne pas utiliser caret 
 #' Sortie graphique, fonction de loss en fonction des itérations               #### OK
+#' Completer le summary avec ma fonction de loss # Quentin
 #' @BONUS
 #' Mettre en image Docker
 #' 
+
+
 
 
 #' @title Logistic Regression Multinomial Class
@@ -47,6 +58,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     learning_rate = NULL,
     num_iterations = NULL,
     loss_history = NULL,  # Stock the loss values for each iteration
+    loss_function = NULL,  # Loss function to use
 
     beta1 = 0.9,  # Parameters for momentum of Adam
     beta2 = 0.999, # Parameters for second momentum of Adam
@@ -55,13 +67,22 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @description Initializes a new instance of the `LogisticRegressionMultinomial` class.
     #' @param learning_rate Numeric. Sets the learning rate for gradient descent. Default is 0.01.
     #' @param num_iterations Integer. Specifies the number of gradient descent iterations. Default is 1000.
+    #' @param loss Character. Specifies the loss function to use. Options are "logistique", "quadratique", "deviance". Default is "logistique".
     #' @return A new `LogisticRegressionMultinomial` object.
-    initialize = function(learning_rate = 0.01, num_iterations = 1000) {
+    initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique") {
       self$learning_rate <- learning_rate
       self$num_iterations <- num_iterations
-      self$loss_history <- num_iterations
-
+      self$loss_history <- numeric(num_iterations)
+      
+      if (loss == "logistique") {
+        self$loss_function <- self$log_loss
+      } else if (loss == "quadratique") {
+        self$loss_function <- self$mse_loss
+      } else {
+        stop("Fonction de perte non reconnue")
+      }
     },
+
     
     #' @description Fits the multinomial logistic regression model to the provided data.
     #' @param X A data frame or matrix of predictors (features), where rows represent samples and columns represent features.
@@ -89,7 +110,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
         
         # Compute the gradient
         one_hot_y <- self$one_hot_encode(y, unique_classes)
-        loss <- -sum(one_hot_y * log(probabilities)) / num_samples
+        loss <- self$loss_function(one_hot_y, probabilities)
         self$loss_history[i] <- loss  # Stock the loss value
         
         cat("Iteration:", i, "Loss:", loss, "\n")
@@ -140,7 +161,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       X <- cbind(1, X)  # Add intercept term
       linear_model <- X %*% self$coefficients
       probabilities <- self$softmax(linear_model)
-      return(apply(probabilities, 1, which.max) - 1)  # Convert back to 0 and 1 instead of 1 and 2
+      return(apply(probabilities, 1, which.max))  # Convert back to 0 and 1 instead of 1 and 2
     },
     
     #' @description This function calculates the importance of each feature based on the absolute value of the coefficients.
@@ -205,9 +226,27 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       
       #  F1-score, precision, Recall
       library(caret)
+      library(MLmetrics)
       report <- confusionMatrix(as.factor(predictions), as.factor(y_test))
       print(report)
-    }
+      
+      f1_weighted <- F1_Score(y_pred = predictions, y_true = y_test)
+      cat("F1 Score:", f1_weighted, "\n")
+      },
+      
+      # LOSS FUNCTIONS
+      log_loss = function(y_true, y_pred) {
+        epsilon <- 1e-15  # Small value to prevent log(0)
+        y_pred <- pmax(pmin(y_pred, 1 - epsilon), epsilon) 
+        loss <- -sum(y_true * log(y_pred))  # Régularisez par 1/N ?
+        return(loss)
 
+      },
+
+      mse_loss = function(y_true, y_pred) {
+        0.5 * mean((y_true - y_pred)^2)
+      }
   )
 )
+
+# nolint end
