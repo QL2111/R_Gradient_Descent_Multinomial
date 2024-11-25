@@ -17,7 +17,7 @@
 #' legends (nom des classes) auc PLOT # Quentin
 #' Améliroer le roc AUC dans shiny(éviter de calculer 2 fois) # Quentin
 #' Exportation en PMML # Daniella 
-#' Tester var_importance et comparer avec sklearn # Quentin
+#' Tester var_importance et comparer avec sklearn # Quentin         #### OK
 #' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles,  #### EN COURS + de champs possibles ?
 #' AUC ? -> print + shiny # Quentin # A REVOIR stratégie OvA
 #' 
