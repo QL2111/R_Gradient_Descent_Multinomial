@@ -5,30 +5,36 @@
 # 14/11 -> Le test sur credit_card_rmd a montré que le problème vient du modèle et non du préprocessing #### OK
 
 #' @TODO: 
-#' predict_proba() pour avoir les probabilités des classes + ajouter au summary # Daniella # A REVOIR DT sklearn
-#' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.) # Awa(fit) #### LaTeX SGD pas efficace ?
 #' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS
 #' Ajouter var select # Awa #### EN COURS  
-#' Changer les levels ? Répréesentation en 1,2,3 mais plsu tard garder les labels?
-#' One hot encoding one vs one et one vs all et multinomial native # Quentin # Pas besoin on a utiliser une fonction de perte multinomiale(solution 1) #### OK
-#' Paralleliser les calculs
-#' ReadMe Github
+#' Changer les levels ? Répréesentation en 1,2,3 mais plsu tard garder les labels? # Quentin
+#' ReadMe Github 
 #' Video explicative(tuto)
 #' legends (nom des classes) auc PLOT # Quentin
 #' Améliroer le roc AUC dans shiny(éviter de calculer 2 fois) # Quentin
 #' Exportation en PMML # Daniella 
-#' Tester var_importance et comparer avec sklearn # Quentin         #### OK
-#' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles,  #### EN COURS + de champs possibles ?
-#' AUC ? -> print + shiny # Quentin # A REVOIR stratégie OvA
+#' Tester Analyse factorielle multiclass tester avec student_performancce + Iris + JEU DE DONNEES avec beaucoup de col# Quentin Iris + StudentPerformance OK
+#' Formularie Shiny, rajouter l'option d'analyse factorielle et de régularisation 
+#' Améliorer analyse factorielle, ne pas limiterà deux dimensions mais quand ça reach 95%
+#' Sur Iris OK mais pas sur StudentPerformance(car 2 dimensions ne suffisent pas, voir var_importance -> garder à mon avis 4 dimensions) 
+#' Factoriser code factor_analysis dans DataPreparer # Quentin ### OK
 #' 
 #' @NEXT
-#' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Daniella
 #' Peut-être ne pas utiliser caret + MLmetrics + pROC 
 #' @BONUS
 #' Mettre en image Docker
+#' #' Paralleliser les calculs
 #' #' Analyse Factorielle (Plus de dimension) # Awa
+#' #' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles,  #### EN COURS + de champs possibles ?
+
 #' 
 #' @DONE
+#' #' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Daniella
+#' #' AUC ? -> print + shiny # Quentin ####ok
+#' #' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.) # Awa(fit) #### LaTeX SGD pas efficace ?
+#' Tester var_importance et comparer avec sklearn # Quentin         #### OK
+#' #' predict_proba() pour avoir les probabilités des classes + ajouter au summary # Daniella # A REVOIR DT sklearn
+
 #' #' Tester avec DeviceModel # Awa  #### OK
 #' #' Revoir le var importance(à traiter et écrire dans le rapport) # Awa #### Tester avec Iris et nnet  #### OK
 #' #' Implement the LogisticRegressionMultinomial class with Adam optimizer # Quentin #### OK
@@ -215,7 +221,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       
     #   return(importance_ranked)
     # },
-
     var_importance = function() {
       coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
       feature_names <- colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
@@ -359,10 +364,10 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       probabilities <- self$predict_proba(X_test)
       predictions <- self$predict(X_test)
       
-      # Confusion Matrix
-      confusion_matrix <- table(Predicted = predictions, Actual = y_test)
-      print("Confusion Matrix:")
-      print(confusion_matrix)
+      # # Confusion Matrix # Already included in the caret report
+      # confusion_matrix <- table(Predicted = predictions, Actual = y_test)
+      # print("Confusion Matrix:")
+      # print(confusion_matrix)
       
       #  F1-score, precision, Recall, AUC
       library(caret)
@@ -377,7 +382,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       
         output <- capture.output({
         print("Confusion Matrix:")
-        print(confusion_matrix)
+        # print(confusion_matrix)
         print(report)
         cat("F1 Score:", f1_weighted, "\n")
       })
@@ -448,7 +453,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
         loss <- self$loss_function(one_hot_y, probabilities)
         self$loss_history[i] <- loss
         
-        cat("Iteration:", i, "Loss:", loss, "\n")
+        # cat("Iteration:", i, "Loss:", loss, "\n")
 
         error <- probabilities - one_hot_y
         gradient <- t(X_train) %*% error / num_samples

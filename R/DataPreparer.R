@@ -1,7 +1,7 @@
+# nolint start
 # DataPreparer.R
 # Générer doc
 # devtools::document("D:/GitHub/R_Gradient_Descent_Multinomial")
-# nolint start
 #' @title Data Preparation Class
 #' @description The `DataPreparer` class provides methods to standardize quantitative data and encode qualitative data, allowing the option of factor analysis for mixed data.
 #' @details This class is part of a package designed to support data preparation tasks, particularly for models that need standardized quantitative features and encoded categorical features. The class can handle mixed data types and offers both one-hot encoding and an alternative factor analysis encoding for qualitative data.
@@ -38,36 +38,53 @@ DataPreparer <- R6::R6Class("DataPreparer",
     #' }
     prepare_data = function(data) {
       quantitative_vars <- sapply(data, is.numeric) # Check the type isnumeric
-      qualitative_vars <- !quantitative_vars # Check the type is not numeric
+      qualitative_vars <- sapply(data, is.factor) # Check the type is factor
       prepared_list <- list()
       
       # Process quantitative variables: standardization
       if (any(quantitative_vars)) {
+        # quant_data <- data[, quantitative_vars, drop = FALSE] # drop=FALSE to keep data frame or else it will transform into a vector
+        # quant_data <- as.data.frame(lapply(quant_data, self$standardize)) # Apply the standardize function -> Old version, using scale works better
+        # prepared_list$quantitative <- quant_data
         quant_data <- data[, quantitative_vars, drop = FALSE] # drop=FALSE to keep data frame or else it will transform into a vector
-        quant_data <- as.data.frame(lapply(quant_data, self$standardize)) # Apply the standardize function
+        quant_data <- scale(data[, quantitative_vars, drop = FALSE])
         prepared_list$quantitative <- quant_data
       }
       
-      # Process qualitative variables: factor analysis or one-hot encoding
+      # Process qualitative variables: one-hot encoding
       if (any(qualitative_vars)) {
         qual_data <- data[, qualitative_vars, drop = FALSE]
-        
-        if (self$use_factor_analysis) { # IF use_factor_analysis TRUE use factor_analysis instead of one-hot encoding
-          # Apply factor analysis for qualitative data
-          qual_data <- factor_analysis_mixed(qual_data)
-        } else {
-          # One-hot encoding
-          qual_data <- as.data.frame(model.matrix(~ . - 1, data = qual_data)) # ~ . - 1 means all columns except the first one(exclude intercept - to avoid multicollinearity)
-        }
-        
+        # One-hot encoding
+        qual_data <- as.data.frame(model.matrix(~ . - 1, data = qual_data)) # ~ . - 1 means all columns except the first one (exclude intercept - to avoid multicollinearity)
         prepared_list$qualitative <- qual_data
       }
       
       # Combine quantitative and qualitative data
-      prepared_data <- do.call(cbind, prepared_list)
-      return(prepared_data)
+      combined_data <- do.call(cbind, prepared_list)
+      
+      if (self$use_factor_analysis) {
+        # Apply factor analysis
+        # Adjust weights for modalities (optional depending on desired method)
+        if (!is.null(prepared_list$qualitative)) {
+          modal_weights <- apply(prepared_list$qualitative, 2, sd)
+          prepared_list$qualitative <- sweep(prepared_list$qualitative, 2, modal_weights, FUN = "/")
+        }
+        # Perform principal component analysis (PCA)
+        covariance_matrix <- cov(combined_data)  # Covariance matrix
+        eig <- eigen(covariance_matrix)          # Eigenvalues and eigenvectors decomposition
+        eigenvalues <- eig$values
+        eigenvectors <- eig$vectors
+        # Calculate individual coordinates on principal components
+        principal_components <- combined_data %*% eigenvectors
+        # Return the first principal dimensions (2 for now)
+        coord <- as.data.frame(principal_components[, 1:2])  # Keep the first two dimensions
+        colnames(coord) <- c("Dim1", "Dim2")
+        return(coord)
+      } else {
+        return(combined_data)
+      }
     }
   )
 )
 
-# nolint
+# nolint end

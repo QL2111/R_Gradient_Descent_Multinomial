@@ -1,9 +1,11 @@
+# nolint start
 # Charger les fichiers de fonctions
 source("R/DataPreparer.R")
 source("R/factor_analysis_mixed.R")
 source("R/LogisticRegressionMultinomial.R")
 
 # Charger les données Iris
+
 data(iris)
 iris$Species <- as.factor(iris$Species)
 
@@ -21,9 +23,13 @@ X_test <- test_data[, -which(names(test_data) == "Species")]
 y_test <- test_data$Species
 
 # Préparer les données sans inclure la variable cible
-data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+data_prep <- DataPreparer$new(use_factor_analysis = FALSE) # On utilise factor analysis pour les variables qualitatives
 prepared_X_train <- data_prep$prepare_data(X_train)
 prepared_X_test <- data_prep$prepare_data(X_test)
+
+print("test data prep")
+#shape of prepared_X_train
+print(dim(prepared_X_train))    # On ne devrait avoir que deux variables qualitatives (dim à 2) pour le moment
 
 # Convertir les données préparées en matrices
 X_train_matrix <- as.matrix(prepared_X_train)
@@ -41,7 +47,7 @@ model$fit(X_train_matrix, y_train_numeric)
 predictions <- model$predict(X_test_matrix)
 
 # Afficher les prédictions
-print(predictions)
+# print(predictions)
 
 # Calculer et afficher l'accuracy
 accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
@@ -49,7 +55,9 @@ cat("Accuracy:", accuracy, "\n")
 
 # Matrice de confusion pour évaluer les performances
 confusion_matrix <- table(Predicted = predictions, Actual = y_test_numeric)
-print(confusion_matrix)
-
+# print(confusion_matrix)
+model$print(X_test_matrix, y_test_numeric)
 # Importance des variables
 model$var_importance()
+
+# nolint end
