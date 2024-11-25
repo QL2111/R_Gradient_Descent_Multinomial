@@ -9,17 +9,21 @@
 #' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.) # Awa(fit) #### LaTeX SGD pas efficace ?
 #' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS
 #' Ajouter var select # Awa #### EN COURS  
-#' One hot encoding one vs one et one vs all et multinomial native # Quentin
+#' Changer les levels ? Répréesentation en 1,2,3 mais plsu tard garder les labels?
+#' One hot encoding one vs one et one vs all et multinomial native # Quentin # Pas besoin on a utiliser une fonction de perte multinomiale(solution 1) #### OK
 #' Paralleliser les calculs
-
+#' ReadMe Github
+#' Video explicative(tuto)
+#' legends (nom des classes) auc PLOT # Quentin
+#' Améliroer le roc AUC dans shiny(éviter de calculer 2 fois) # Quentin
 #' Exportation en PMML # Daniella 
 #' Tester var_importance et comparer avec sklearn # Quentin
-#' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles, 
-#' AUC ? -> print + shiny # Quentin
+#' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles,  #### EN COURS + de champs possibles ?
+#' AUC ? -> print + shiny # Quentin # A REVOIR stratégie OvA
 #' 
 #' @NEXT
 #' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Daniella
-#' Peut-être ne pas utiliser caret + MLmetrics
+#' Peut-être ne pas utiliser caret + MLmetrics + pROC 
 #' @BONUS
 #' Mettre en image Docker
 #' #' Analyse Factorielle (Plus de dimension) # Awa
@@ -158,49 +162,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       }
     },
 
-    # Code AWA -> Performance du SGD faible 
-    # fit = function(X, y) {
-    #   y <- factor(y)
-    #   unique_classes <- levels(y)
-    #   num_classes <- length(unique_classes)
-    #   num_samples <- nrow(X)
-    #   num_features <- ncol(X)
-      
-    #   # Initialisation des coefficients
-    #   self$coefficients <- matrix(0, nrow = num_features + 1, ncol = num_classes)
-    #   X <- cbind(1, X)
-      
-    #   # Variables pour Adam
-    #   m <- matrix(0, nrow = num_features + 1, ncol = num_classes)
-    #   v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
-      
-    #   for (i in 1:self$num_iterations) {
-    #     linear_model <- X %*% self$coefficients
-    #     probabilities <- self$softmax(linear_model)
-    #     one_hot_y <- self$one_hot_encode(y, unique_classes)
-    #     loss <- -sum(one_hot_y * log(probabilities)) / num_samples
-    #     self$loss_history[i] <- loss
-    #     cat("Iteration:", i, "Loss:", loss, "\n")
-        
-    #     error <- probabilities - one_hot_y
-    #     gradient <- t(X) %*% error / num_samples
-        
-    #     if (self$optimizer == "adam") {
-    #       # Mise à jour avec Adam
-    #       m <- self$beta1 * m + (1 - self$beta1) * gradient
-    #       v <- self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
-    #       m_hat <- m / (1 - self$beta1 ^ i)
-    #       v_hat <- v / (1 - self$beta2 ^ i)
-    #       self$coefficients <- self$coefficients - self$learning_rate * m_hat / (sqrt(v_hat) + self$epsilon)
-    #     } else if (self$optimizer == "sgd") {
-          
-    #       # Mise à jour avec SGD
-    #       self$coefficients <- self$coefficients - self$learning_rate * gradient
-    #     } else {
-    #       stop("Unsupported optimizer: ", self$optimizer)
-    #     }
-    #   }
-    # },
     
     #' @description Computes the softmax of the input matrix.
     #' @param z A matrix of linear model outputs.
@@ -241,18 +202,36 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' model$var_importance()
     #' }
     #' @export
-    var_importance = function() {
-      coef_matrix <- abs(self$coefficients[-1, ])  # Exclude intercept term
-      importance_scores <- rowSums(coef_matrix)    # Sum of absolute coefficients for each feature
-      importance_ranked <- sort(importance_scores, decreasing = TRUE)
+    # var_importance = function() {
+    #   coef_matrix <- abs(self$coefficients[-1, ])  # Exclude intercept term
+    #   importance_scores <- rowSums(coef_matrix)    # Sum of absolute coefficients for each feature
+    #   importance_ranked <- sort(importance_scores, decreasing = TRUE)
       
-      # Affichage des importances
+    #   # Affichage des importances
+    #   cat("Variable Importance (sorted):\n")
+    #   for (i in 1:length(importance_ranked)) {
+    #     cat(names(importance_ranked)[i], ": ", importance_ranked[i], "\n")
+    #   }
+      
+    #   return(importance_ranked)
+    # },
+
+    var_importance = function() {
+      coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
+      feature_names <- colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
+      
+      # Importance par classe
+      importance_scores <- rowMeans(coef_matrix)  # Moyenne des coefficients absolus pour toutes les classes
+      importance_ranked <- sort(importance_scores, decreasing = TRUE) # Trier par ordre décroissant
+      
+      # Afficher les importances
       cat("Variable Importance (sorted):\n")
-      for (i in 1:length(importance_ranked)) {
-        cat(names(importance_ranked)[i], ": ", importance_ranked[i], "\n")
+      for (i in seq_along(importance_ranked)) {
+        cat(names(importance_ranked)[i], ": ", round(importance_ranked[i], 4), "\n")
       }
       
-      return(importance_ranked)
+      # Retourner les scores
+      #return(importance_ranked)
     },
 
 
@@ -274,6 +253,58 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       plot(self$loss_history, type = "l", col = "blue", lwd = 2,
            main = "Loss Function Convergence",
            xlab = "Iterations", ylab = "Loss")
+    },
+
+    #' @description This function calculates and plots the ROC AUC for the model predictions.
+    #' @param X_test A data frame or matrix containing the test features.
+    #' @param y_test A vector containing the true labels for the test data.
+    #' @return A plot showing the ROC curve and the AUC value.
+    #' @examples
+    #' \dontrun{
+    #' model$plot_auc(X_test, y_test)
+    #' }
+    #' @import pROC
+    #' @export
+    plot_auc = function(X_test, y_test, probabilities = NULL) {
+      library(pROC)
+      
+      # Predict probabilities if not provided
+      if (is.null(probabilities)) {
+        X_test <- cbind(1, X_test)  # Add intercept term
+        linear_model <- X_test %*% self$coefficients
+        probabilities <- self$softmax(linear_model)
+      }
+      
+      # Ensure y_test is a factor
+      y_test <- factor(y_test)
+      levels_y_test <- levels(y_test)
+      
+      # Calculate ROC AUC for each class strategy One vs All
+      auc_values <- numeric(ncol(probabilities))
+      
+      # Initialize an empty plot
+      plot(NULL, xlim = c(0, 1), ylim = c(0, 1), xlab = "1 - Specificity (False Positive Rate)", 
+          ylab = "Sensitivity (True Positive Rate)", main = "ROC Curve", type = "n", asp = 1)
+      abline(a = 0, b = 1, lty = 2, col = "gray") # Add diagonal reference line
+      
+      # Loop through each class
+      for (i in 1:ncol(probabilities)) {
+        binary_response <- as.numeric(y_test == levels_y_test[i])
+        roc_curve <- roc(binary_response, probabilities[, i], quiet = TRUE) # library pROC
+        auc_values[i] <- auc(roc_curve)
+        
+        # Add ROC curve to the plot
+        lines(1 - roc_curve$specificities, roc_curve$sensitivities, col = i + 1, lwd = 2)
+      }
+      
+      # Add legend to distinguish between classes
+      legend("bottomright", legend = levels_y_test, col = 2:(ncol(probabilities) + 1), lwd = 2)
+      
+      # Print AUC values
+      cat("AUC values for each class:\n")
+      for (i in 1:length(auc_values)) {
+        cat("Class", levels_y_test[i], ":", auc_values[i], "\n")
+      }
     },
     
     #' @description Displays the hyperparameters of the trained model.
@@ -325,6 +356,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @import MLmetrics
     #' @export
     print = function(X_test, y_test) {
+      probabilities <- self$predict_proba(X_test)
       predictions <- self$predict(X_test)
       
       # Confusion Matrix
@@ -332,14 +364,25 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       print("Confusion Matrix:")
       print(confusion_matrix)
       
-      #  F1-score, precision, Recall
+      #  F1-score, precision, Recall, AUC
       library(caret)
       library(MLmetrics)
       report <- confusionMatrix(as.factor(predictions), as.factor(y_test))
       print(report)
       
-      f1_weighted <- F1_Score(y_pred = predictions, y_true = y_test)
+      f1_weighted <- F1_Score(y_pred = predictions, y_true = y_test) # use MLmetrics
       cat("F1 Score:", f1_weighted, "\n")
+
+      self$plot_auc(X_test, y_test, probabilities)
+      
+        output <- capture.output({
+        print("Confusion Matrix:")
+        print(confusion_matrix)
+        print(report)
+        cat("F1 Score:", f1_weighted, "\n")
+      })
+      
+      return(output)
     },
     
       
@@ -480,25 +523,18 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
           }
         }
       }
-    }
+    },
 
-    # var_importance = function() {
-    #   coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
-    #   feature_names <- colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
-      
-    #   # Importance par classe
-    #   importance_scores <- rowMeans(coef_matrix)  # Moyenne des coefficients absolus pour toutes les classes
-    #   importance_ranked <- sort(importance_scores, decreasing = TRUE) # Trier par ordre décroissant
-      
-    #   # Afficher les importances
-    #   cat("Variable Importance (sorted):\n")
-    #   for (i in seq_along(importance_ranked)) {
-    #     cat(names(importance_ranked)[i], ": ", round(importance_ranked[i], 4), "\n")
-    #   }
-      
-    #   # Retourner les scores
-    #   #return(importance_ranked)
-    # }
+
+    #' @description Predicts the class probabilities for new data.
+    #' @param X A data frame or matrix of predictors, where rows are samples and columns are features.
+    #' @return A matrix of predicted class probabilities for each sample.
+    predict_proba = function(X) {
+      X <- cbind(1, X)  # Add intercept term
+      linear_model <- X %*% self$coefficients
+      probabilities <- self$softmax(linear_model)
+      return(probabilities)
+    }
 
     
   )

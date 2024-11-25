@@ -2,107 +2,143 @@ library(shiny)
 library(R6)
 library(caret)
 library(pROC)
-
+# nolint start
 #'@RUN shiny::runApp("R/shiny.R")
 
 # Charger ou définir la classe LogisticRegressionMultinomial ici
-# (Coller le code complet de la classe LogisticRegressionMultinomial ici)
 source("LogisticRegressionMultinomial.R")
+source("DataPreparer.R")
+
 # Interface utilisateur
 ui <- fluidPage(
-  titlePanel("Multinomial Logistic Regression Trainer"),
-  
+  titlePanel("Logistic Regression Multinomial"),
   sidebarLayout(
     sidebarPanel(
-      fileInput("file", "Upload CSV File", accept = ".csv"),
-      checkboxInput("use_default", "Use Default Dataset (iris)", value = TRUE),
-      numericInput("learning_rate", "Learning Rate", value = 0.01, step = 0.001),
-      numericInput("num_iterations", "Number of Iterations", value = 1000, min = 100),
+      fileInput("file", "Upload CSV or XLSX File", accept = c(".csv", ".xlsx")),
+      radioButtons("data_choice", "Choose Data Source:",
+                   choices = list("Use Iris Dataset" = "iris", "Use Uploaded File" = "uploaded"),
+                   selected = "iris"),
+      uiOutput("target_var_ui"),  # Dynamic UI for target variable selection
+      numericInput("learning_rate", "Learning Rate:", 0.01, min = 0.001, max = 1, step = 0.001),
+      numericInput("num_iterations", "Number of Iterations:", 1000, min = 100, max = 10000, step = 100),
+      selectInput("optimizer", "Optimizer:", choices = c("adam", "sgd")),
+      numericInput("patience", "Early Stopping Patience:", 10, min = 1, max = 100, step = 1),
       actionButton("train", "Train Model")
     ),
-    
     mainPanel(
       tabsetPanel(
-        tabPanel("Summary", 
-                 verbatimTextOutput("summary")),
-        tabPanel("Loss Plot", 
-                 plotOutput("loss_plot")),
-        tabPanel("Confusion Matrix", 
-                 tableOutput("conf_matrix"))
+        tabPanel("Summary", verbatimTextOutput("summary_output")),
+        tabPanel("Metrics", verbatimTextOutput("metrics_output")),
+        tabPanel("Loss Plot", plotOutput("loss_plot")),
+        tabPanel("ROC AUC", plotOutput("roc_plot"), verbatimTextOutput("auc_values"))
       )
     )
   )
 )
 
-# Serveur
 server <- function(input, output, session) {
+  model <- reactiveVal(NULL)
+  results <- reactiveValues()
+  
+  # Charger les données en fonction du choix de l'utilisateur
   data <- reactive({
-    if (input$use_default) {
-      # Utiliser le jeu de données iris comme exemple
-      iris$Species <- as.factor(as.numeric(iris$Species) - 1) # Convertir en binaire pour cet exemple
+    if (input$data_choice == "iris") {
       return(iris)
     } else if (!is.null(input$file)) {
-      # Charger un fichier utilisateur
-      df <- read.csv(input$file$datapath)
-      return(df)
+      ext <- tools::file_ext(input$file$name)
+      if (ext == "csv") {
+        return(read.csv(input$file$datapath))
+      } else if (ext == "xlsx") {
+        return(read_excel(input$file$datapath))
+      }
     }
     return(NULL)
   })
   
-  model <- reactiveVal(NULL)  # Stocker le modèle entraîné
-  results <- reactiveValues(conf_matrix = NULL, loss_plot = NULL)  # Stocker les résultats
+  # Mettre à jour la sélection de la variable cible en fonction des données chargées
+  observe({
+    dataset <- data()
+    if (!is.null(dataset)) {
+      updateSelectInput(session, "target_var", choices = names(dataset), selected = names(dataset)[ncol(dataset)])
+    }
+  })
+  
+  # Générer l'UI pour la sélection de la variable cible
+  output$target_var_ui <- renderUI({
+    req(data())
+    selectInput("target_var", "Target Variable:", choices = names(data()), selected = names(data())[ncol(data())])
+  })
   
   observeEvent(input$train, {
-    req(data())  # Vérifier que les données existent
+    req(data())
+    dataset <- data()
+    target_var <- input$target_var
+    X <- dataset[, !names(dataset) %in% target_var]
+    y_numeric <- as.factor(dataset[[target_var]])
     
-    df <- data()
-    target_col <- ncol(df)  # Supposons que la dernière colonne est la cible
-    X <- as.matrix(df[, -target_col])
-    y <- as.factor(df[, target_col])
+    # Vérifier les valeurs manquantes
+    if (any(is.na(X)) || any(is.na(y_numeric))) {
+      showNotification("Les données contiennent des valeurs manquantes. Veuillez les traiter avant de continuer.", type = "error")
+      return(NULL)
+    }
+    # Split des données en ensembles d'entraînement et de test
+    set.seed(123)  # Pour la reproductibilité
+    train_indices <- sample(seq_len(nrow(X)), size = 0.7 * nrow(X))
+    X_train <- X[train_indices, ]
+    y_train <- y_numeric[train_indices]
+    X_test <- X[-train_indices, ]
+    y_test <- y_numeric[-train_indices]
+
+    # encode y_test                           ####Changer les levels ? Répréesentation en 1,2,3 mais plsu tard garder les labels?
+    y_test <- as.numeric(y_test)
+    print(y_test)
+
     
-    # Diviser les données en train/test
-    set.seed(42)
-    train_index <- createDataPartition(y, p = 0.7, list = FALSE)
-    X_train <- X[train_index, ]
-    y_train <- y[train_index]
-    X_test <- X[-train_index, ]
-    y_test <- y[-train_index]
+    # Préparer les données avec DataPreparer
+    data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+    prepared_X_train <- data_prep$prepare_data(X_train)
+    prepared_X_test <- data_prep$prepare_data(X_test)
+    X_train_matrix <- as.matrix(prepared_X_train)
+    X_test_matrix <- as.matrix(prepared_X_test)
     
-    # Initialiser et entraîner le modèle
     logistic_model <- LogisticRegressionMultinomial$new(
       learning_rate = input$learning_rate, 
-      num_iterations = input$num_iterations
+      num_iterations = input$num_iterations,
+      optimizer = input$optimizer,
+      patience = input$patience,
+      use_early_stopping = TRUE
     )
-    logistic_model$fit(X_train, y_train)
+    logistic_model$fit(X_train_matrix, y_train)
     model(logistic_model)  # Stocker le modèle
     
     # Générer les prédictions
-    predictions <- logistic_model$predict(X_test)
-    confusion_matrix <- table(Predicted = predictions, Actual = y_test)
+    predictions <- logistic_model$predict(X_test_matrix)
+    predictions <- factor(predictions, levels = levels(factor(y_test)))  # Align levels with y_test
+    confusion_matrix <- table(Predicted = predictions, Actual = factor(y_test))
     results$conf_matrix <- confusion_matrix
     
     # Stocker la courbe de perte
     results$loss_plot <- logistic_model$loss_history
+
+    # Stocker les métriques
+    results$metrics <- logistic_model$print(X_test_matrix, y_test)
+
+    # Stocker les courbes ROC AUC
+    # results$roc_auc <- logistic_model$plot_auc(X_test_matrix, y_test, logistic_model$predict_proba(X_test_matrix))
   })
   
   # Afficher le résumé
-  output$summary <- renderPrint({
+  output$summary_output <- renderPrint({
     req(model())
-    logistic_model <- model()
-    
-    df <- data()
-    target_col <- ncol(df)
-    X <- as.matrix(df[, -target_col])
-    y <- as.factor(df[, target_col])
-    
-    # Diviser les données en train/test
-    set.seed(42)
-    train_index <- createDataPartition(y, p = 0.7, list = FALSE)
-    X_test <- X[-train_index, ]
-    y_test <- y[-train_index]
-    
-    logistic_model$summary(X_test, y_test)
+    model()$summary()
   })
+  
+  # Afficher les métriques
+  output$metrics_output <- renderPrint({
+    req(results$metrics)
+    cat(results$metrics, sep = "\n")
+  })
+
   
   # Afficher la courbe de perte
   output$loss_plot <- renderPlot({
@@ -112,12 +148,62 @@ server <- function(input, output, session) {
          xlab = "Iterations", ylab = "Loss")
   })
   
-  # Afficher la matrice de confusion
-  output$conf_matrix <- renderTable({
-    req(results$conf_matrix)
-    results$conf_matrix
+  # Afficher les courbes ROC AUC
+  output$roc_plot <- renderPlot({
+    req(model())
+    dataset <- data()
+    target_var <- input$target_var
+    X <- dataset[, !names(dataset) %in% target_var]
+    y <- as.factor(dataset[[target_var]])
+    
+    # Préparer les données avec DataPreparer
+    data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+    prepared_X <- data_prep$prepare_data(X)
+    X_matrix <- as.matrix(prepared_X)
+    
+    probabilities <- model()$predict_proba(X_matrix)
+    
+    # Calculer et tracer les courbes ROC
+    auc_values <- numeric(ncol(probabilities))
+    for (i in 1:ncol(probabilities)) {
+      binary_response <- as.numeric(y == levels(y)[i])
+      roc_curve <- roc(binary_response, probabilities[, i])
+      auc_values[i] <- auc(roc_curve)
+      plot(roc_curve, main = paste("ROC Curve for Class", levels(y)[i]), col = i, add = i != 1)
+    }
+  })
+  
+  # Afficher les valeurs AUC
+  output$auc_values <- renderPrint({
+    req(model())
+    dataset <- data()
+    target_var <- input$target_var
+    X <- dataset[, !names(dataset) %in% target_var]
+    y <- as.factor(dataset[[target_var]])
+    
+    # Préparer les données avec DataPreparer
+    data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+    prepared_X <- data_prep$prepare_data(X)
+    X_matrix <- as.matrix(prepared_X)
+    
+    probabilities <- model()$predict_proba(X_matrix)
+    
+    # Calculer les valeurs AUC
+    auc_values <- numeric(ncol(probabilities))
+    for (i in 1:ncol(probabilities)) {
+      binary_response <- as.numeric(y == levels(y)[i])
+      roc_curve <- roc(binary_response, probabilities[, i])
+      auc_values[i] <- auc(roc_curve)
+    }
+    
+    # Afficher les valeurs AUC
+    cat("AUC values for each class:\n")
+    for (i in 1:length(auc_values)) {
+      cat("Class", levels(y)[i], ":", auc_values[i], "\n")
+    }
   })
 }
 
-# Lancer l'application
 shinyApp(ui = ui, server = server)
+
+# nolint end
