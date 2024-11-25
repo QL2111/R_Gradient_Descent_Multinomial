@@ -453,7 +453,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
         loss <- self$loss_function(one_hot_y, probabilities)
         self$loss_history[i] <- loss
         
-        # cat("Iteration:", i, "Loss:", loss, "\n")
+        cat("Iteration:", i, "Loss:", loss, "\n")
 
         error <- probabilities - one_hot_y
         gradient <- t(X_train) %*% error / num_samples
