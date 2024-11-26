@@ -2,6 +2,7 @@
 # Générer la documentation
 # roxygen2::roxygenise()
 
+library(R6)
 # 14/11 -> Le test sur credit_card_rmd a montré que le problème vient du modèle et non du préprocessing #### OK
 
 #' @TODO: 
@@ -478,27 +479,31 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
           }
         }
       }
+    }, 
+
+    #' @description Selects the most important variables based on feature importance.
+    #' @param num_variables Integer. The number of most important variables to select.
+    #' @return A data frame with the selected variables for model fitting.
+    #' 
+    select_variables = function(num_variables) {
+      # Calculate the importance of each feature based on the absolute value of the coefficients
+      coef_matrix <- abs(self$coefficients[-1, ])  # Exclude the intercept term
+      importance_scores <- rowSums(coef_matrix)    # Sum of absolute coefficients for each feature
+      importance_ranked <- sort(importance_scores, decreasing = TRUE)
+      
+      # Select the top 'num_variables' features
+      top_variables <- names(importance_ranked)[1:num_variables]
+      
+      # Print the selected variables
+      cat("Selected Variables:\n")
+      for (i in 1:length(top_variables)) {
+        cat(top_variables[i], "\n")
+      }
+      
+      # Return the selected features as a subset of the original data
+      #return(top_variables)
     }
-
-    # var_importance = function() {
-    #   coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
-    #   feature_names <- colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
-      
-    #   # Importance par classe
-    #   importance_scores <- rowMeans(coef_matrix)  # Moyenne des coefficients absolus pour toutes les classes
-    #   importance_ranked <- sort(importance_scores, decreasing = TRUE) # Trier par ordre décroissant
-      
-    #   # Afficher les importances
-    #   cat("Variable Importance (sorted):\n")
-    #   for (i in seq_along(importance_ranked)) {
-    #     cat(names(importance_ranked)[i], ": ", round(importance_ranked[i], 4), "\n")
-    #   }
-      
-    #   # Retourner les scores
-    #   #return(importance_ranked)
-    # }
-
-    
+ 
   )
 )
 

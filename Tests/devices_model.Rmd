@@ -115,7 +115,7 @@ model$plot_loss()
 
 ```{r}
 #tester la fonction var_select()
-#model$var_select(X_train, y_train)
+model$select_variables(10)
 ```
 
 

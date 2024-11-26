@@ -13,9 +13,6 @@ iris$Species <- as.factor(iris$Species)
 
 
 ```{r}
-# S'assurer que la variable cible est un facteur
-data$Device.Model <- as.factor(data$Device.Model)
-
 # Diviser les données en ensembles d'entraînement et de test
 set.seed(42)  # Pour la reproductibilité
 
@@ -129,10 +126,16 @@ model$plot_loss()
 
 ```{r}
 # Appliquer l'factor_analysis_mixed
-factor_scores <- factor_analysis_mixed(data)
+factor_scores <- factor_analysis_mixed(iris)
 
 # Afficher les résultats
 print(factor_scores)
+```
+
+
+```{r}
+#tester la fonction select_variables()
+model$select_variables(4)
 ```
 
 
