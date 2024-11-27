@@ -43,54 +43,22 @@ y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="sgd", use_early_stopping=TRUE, regularization = "l1", lambda = 0.1, alpha = 0.7 )
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="sgd", use_early_stopping=TRUE, regularization = "none", lambda1 = 0.0, lambda2 = 0.0)
 model$fit(X_train_matrix, y_train_numeric)
-
-# # Exporter le modèle en PMML
-# # Créer un modèle glm basé sur les données d'entraînement
-# glm_model <- glm(
-#   Access_to_Resources ~ .,  # La formule d'ajustement
-#   family = binomial(),      # Logistique multiclasse pourrait nécessiter une autre approche (voir nnet::multinom)
-#   data = train_data         # Données d'entraînement complètes
-# )
-# 
-# # Remplacez les coefficients du modèle glm par ceux appris dans votre modèle R6
-# # Assurez-vous que les dimensions des coefficients correspondent
-# glm_model$coefficients <- as.numeric(model$coefficients)
-# 
-# # Exporter le modèle glm en PMML
-# library(XML)
-# library(pmml)
-# pmml_model <- pmml(glm_model, model.name = "Custom Logistic Regression")
-# writePMML(pmml_model, file = "logistic_model.pmml")
-# 
-# cat("PMML exporté sous : logistic_model.pmml\n")
-
 
 # Prédire sur l'ensemble de test
 predictions <- model$predict(X_test_matrix)
 
 # Afficher les prédictions
-print(predictions)
+# print(predictions)
 
 # Calculer et afficher l'accuracy
-accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
-cat("Accuracy:", accuracy, "\n")
+# accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
+# cat("Accuracy:", accuracy, "\n")
 model$summary()
 model$plot_loss()
 model$print(X_test_matrix, y_test_numeric)
-
-# Vérifier si le modèle est entraîné
-if (is.null(model$coefficients)) {
-  stop("Le modèle n'a pas encore été entraîné. Veuillez exécuter fit() d'abord.")
-}
-
-# Tester predict_proba
-probabilities <- model$predict_proba(X_test_matrix)
-cat("Probabilités d'appartenance aux classes")
-cat("\n")
-print(probabilities)
-
-
+print("Variable Importance:")
+model$var_importance()
 
 # nolint end
