@@ -595,26 +595,39 @@ LogisticRegressionMultinomial = R6Class("LogisticRegressionMultinomial",
       return(probabilities)
     },
 
-    export_pmml = function(file_name = "model.pmml") {
+    export_pmml = function(file_path) {
+      # Vérifier si le modèle est entraîné
       if (is.null(self$coefficients)) {
-        stop("Model not yet fitted. Please run fit() first.")
+        stop("Erreur : Le modèle doit être entraîné avant d'être exporté.")
       }
       
-      # Construction manuelle d'un objet modèle compatible
-      pmml_model <- pmml::pmml(
-        model = self,  # Vous devez adapter cet objet pour correspondre aux besoins de pmml
-        model.name = "LogisticRegressionMultinomial",
-        app.name = "Student Performance Logistic Model",
-        description = "A custom logistic regression model for Access_to_Resources",
-        coefficients = self$coefficients,
-        targetField = "Access_to_Resources",  # La variable cible
-        inputFields = colnames(X_train),  # Les noms des prédicteurs
-        fieldDescription = NULL  # Description des champs (facultatif)
-      )
+      # Générer une structure PMML basique
+      library(XML)
       
-      # Exportation
-      pmml::writePMML(pmml_model, file_name)
-      cat("Model exported to PMML file:", file_name, "\n")
+      # Créer le nœud racine
+      pmml <- newXMLNode("PMML", namespaceDefinitions = c("http://www.dmg.org/PMML-4_4"), attrs = c(version = "4.4"))
+      
+      # Ajouter une description du modèle
+      header <- newXMLNode("Header", parent = pmml)
+      newXMLNode("Application", attrs = c(name = "LogisticRegressionMultinomial", version = "1.0"), parent = header)
+      newXMLNode("Timestamp", Sys.time(), parent = header)
+      
+      # Ajouter le modèle
+      model <- newXMLNode("RegressionModel", attrs = c(functionName = "classification", algorithmName = "multinomial logistic regression"), parent = pmml)
+      newXMLNode("MiningSchema", newXMLNode("MiningField", attrs = c(name = "target", usageType = "target")), parent = model)
+      
+      # Ajouter les coefficients
+      regression_table <- newXMLNode("RegressionTable", parent = model)
+      for (class_index in seq_len(ncol(self$coefficients))) {
+        for (feature_index in seq_len(nrow(self$coefficients))) {
+          coefficient <- self$coefficients[feature_index, class_index]
+          newXMLNode("NumericPredictor", attrs = c(name = paste0("Feature", feature_index), coefficient = coefficient), parent = regression_table)
+        }
+      }
+      
+      # Sauvegarder le fichier PMML
+      saveXML(pmml, file = file_path)
+      message("Modèle exporté avec succès au format PMML : ", file_path)
     },
     
 
