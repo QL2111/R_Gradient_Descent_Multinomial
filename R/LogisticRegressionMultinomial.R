@@ -86,8 +86,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     patience = NULL, # Early stopping patience
     
     regularization = NULL,
-    lambda1 = NULL,
-    lambda2 = NULL,
     
     #' @description Initializes a new instance of the `LogisticRegressionMultinomial` class.
     #' @param learning_rate Numeric. Sets the learning rate for gradient descent. Default is 0.01.
@@ -99,7 +97,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @return A new `LogisticRegressionMultinomial` object.
     initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", 
     optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, 
-    use_early_stopping = TRUE, regularization = "none", lambda1 = 0, lambda2 = 0) {
+    use_early_stopping = TRUE, regularization = "none") {
       self$learning_rate = learning_rate
       self$num_iterations = num_iterations
       self$loss_history = numeric(num_iterations)
@@ -112,8 +110,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       self$use_early_stopping <- use_early_stopping
 
       self$regularization <- regularization  # "none", "ridge", "lasso", "elasticnet"
-      self$lambda1 <- lambda1  # Coefficient for Lasso
-      self$lambda2 <- lambda2  # Coefficient for Ridge
 
 
       
@@ -334,6 +330,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       # Model Hyperparameters
       cat("\n=== Model Hyperparameters ===\n")
       cat("Optimizer: ", self$optimizer, "\n")
+      cat("Regularization: ", self$regularization, "\n")
       cat("Learning Rate: ", self$learning_rate, "\n")
       cat("Number of Iterations: ", self$num_iterations, "\n")
       cat("Loss Function: ", self$loss_name, "\n")  
@@ -373,7 +370,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       
       # Confusion Matrix
       confusion_matrix <- table(Predicted = predictions, Actual = y_test)
-      print("Confusion Matrix:")
+      cat("\n=== Confusion Matrix ===\n")
       print(confusion_matrix)
       
       #  F1-score, precision, Recall, AUC
@@ -384,6 +381,11 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       
       f1_weighted <- F1_Score(y_pred = predictions, y_true = y_test) # use MLmetrics
       cat("F1 Score:", f1_weighted, "\n")
+      
+      cat("\n=== Predicted Probabilities ===\n")
+      prob_df <- as.data.frame(probabilities)
+      colnames(prob_df) <- paste0("Class_", 1:ncol(probabilities))  # Name columns for classes
+      print(head(prob_df))  # Show first few rows of probabilities
 
       self$plot_auc(X_test, y_test, probabilities)
       
@@ -469,13 +471,13 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
         error <- probabilities - one_hot_y
         gradient <- t(X_train) %*% error / num_samples
 
-        # Appliquer la régularisation
-        reg_results <- self$apply_regularization(gradient, self$coefficients)
-        penalty <- reg_results$penalty
-        regularized_gradient <- reg_results$regularized_gradient
+        # # Appliquer la régularisation
+        # reg_results <- self$apply_regularization(gradient, self$coefficients)
+        # penalty <- reg_results$penalty
+        # regularized_gradient <- reg_results$regularized_gradient
 
-        m <- self$beta1 * m + (1 - self$beta1) * regularized_gradient
-        v <- self$beta2 * v + (1 - self$beta2) * (regularized_gradient ^ 2)
+        m <- self$beta1 * m + (1 - self$beta1) * gradient
+        v <- self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
         
         m_hat <- m / (1 - self$beta1 ^ i)
         v_hat <- v / (1 - self$beta2 ^ i)
@@ -523,12 +525,12 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
         error <- probabilities - one_hot_y
         gradient <- t(X_train) %*% error / num_samples
 
-        # Appliquer la régularisation
-        reg_results <- self$apply_regularization(gradient, self$coefficients)
-        penalty <- reg_results$penalty
-        regularized_gradient <- reg_results$regularized_gradient
+        # # Appliquer la régularisation
+        # reg_results <- self$apply_regularization(gradient, self$coefficients)
+        # penalty <- reg_results$penalty
+        # regularized_gradient <- reg_results$regularized_gradient
 
-        self$coefficients <- self$coefficients - self$learning_rate * regularized_gradient
+        self$coefficients <- self$coefficients - self$learning_rate * gradient
 
         # Early stopping
         if (self$use_early_stopping) {
@@ -562,27 +564,80 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       return(probabilities)
     },
 
-
-    apply_regularization = function(gradient, coefficients) {
+    #' @description Applies regularization to the gradient and computes the penalty term for the loss function.
+    #' @param gradient A matrix of gradients with respect to the model coefficients.
+    #' @param coefficients A matrix of model coefficients, where the first row corresponds to the intercept.
+    #' @param p A numeric value (default 0.5) representing the mixing parameter for ElasticNet regularization.
+    #' @return A list containing:
+    #'   - `penalty`: The computed penalty term to be added to the loss function.
+    #'   - `regularized_gradient`: The gradient matrix adjusted for regularization.
+    apply_regularization = function(gradient, coefficients, p = 0.5) {
       penalty <- 0  # Pénalité à ajouter à la fonction de perte
       regularized_gradient <- gradient  # Gradients modifiés par la régularisation
       
       # Exclure l'intercept des coefficients (pas de régularisation sur l'intercept)
       coef_no_intercept <- coefficients[-1, ]
       
+      # Calcul des pénalités et des gradients selon le type de régularisation
       if (self$regularization == "ridge") {
-        penalty <- self$lambda2 * sum(coef_no_intercept^2)
-        regularized_gradient[-1, ] <- gradient[-1, ] + 2 * self$lambda2 * coef_no_intercept
+        # Pénalité Ridge : 1/2 * sum(beta^2)
+        penalty <- 0.5 * sum(coef_no_intercept^2)
+        regularized_gradient[-1, ] <- gradient[-1, ] + coef_no_intercept
       } else if (self$regularization == "lasso") {
-        penalty <- self$lambda1 * sum(abs(coef_no_intercept))
-        regularized_gradient[-1, ] <- gradient[-1, ] + self$lambda1 * sign(coef_no_intercept)
+        # Pénalité Lasso : 1/2 * sum(|beta|)
+        penalty <- 0.5 * sum(abs(coef_no_intercept))
+        regularized_gradient[-1, ] <- gradient[-1, ] + sign(coef_no_intercept)
       } else if (self$regularization == "elasticnet") {
-        penalty <- self$lambda1 * sum(abs(coef_no_intercept)) + self$lambda2 * sum(coef_no_intercept^2)
-        regularized_gradient[-1, ] <- gradient[-1, ] + self$lambda1 * sign(coef_no_intercept) + 2 * self$lambda2 * coef_no_intercept
+        # Pénalité ElasticNet : (1-p)/2 * sum(beta^2) + p * sum(|beta|)
+        penalty <- 0.5 * (1 - p) * sum(coef_no_intercept^2) + 0.5 * p * sum(abs(coef_no_intercept))
+        regularized_gradient[-1, ] <- gradient[-1, ] + (1 - p) * coef_no_intercept + p * sign(coef_no_intercept)
       }
       
       return(list(penalty = penalty, regularized_gradient = regularized_gradient))
+    },
+    
+    
+    #' @description Exports the trained model to a PMML (Predictive Model Markup Language) file.
+    #' @param file_path A string specifying the path where the PMML file will be saved.
+    #' @return Saves the PMML representation of the trained model to the specified file and returns a success message.
+    #' @details This function generates a PMML file for a multinomial logistic regression model, including the model's
+    #'   coefficients and metadata. It ensures that the model is trained before exporting and uses the PMML version 4.4 format.
+    #' @throws An error if the model is not trained (i.e., `self$coefficients` is `NULL`).
+    export_pmml = function(file_path) {
+      # Vérifier si le modèle est entraîné
+      if (is.null(self$coefficients)) {
+        stop("Erreur : Le modèle doit être entraîné avant d'être exporté.")
+      }
+      
+      # Générer une structure PMML basique
+      library(XML)
+      
+      # Créer le nœud racine
+      pmml <- newXMLNode("PMML", namespaceDefinitions = c("http://www.dmg.org/PMML-4_4"), attrs = c(version = "4.4"))
+      
+      # Ajouter une description du modèle
+      header <- newXMLNode("Header", parent = pmml)
+      newXMLNode("Application", attrs = c(name = "LogisticRegressionMultinomial", version = "1.0"), parent = header)
+      newXMLNode("Timestamp", Sys.time(), parent = header)
+      
+      # Ajouter le modèle
+      model <- newXMLNode("RegressionModel", attrs = c(functionName = "classification", algorithmName = "multinomial logistic regression"), parent = pmml)
+      newXMLNode("MiningSchema", newXMLNode("MiningField", attrs = c(name = "target", usageType = "target")), parent = model)
+      
+      # Ajouter les coefficients
+      regression_table <- newXMLNode("RegressionTable", parent = model)
+      for (class_index in seq_len(ncol(self$coefficients))) {
+        for (feature_index in seq_len(nrow(self$coefficients))) {
+          coefficient <- self$coefficients[feature_index, class_index]
+          newXMLNode("NumericPredictor", attrs = c(name = paste0("Feature", feature_index), coefficient = coefficient), parent = regression_table)
+        }
+      }
+      
+      # Sauvegarder le fichier PMML
+      saveXML(pmml, file = file_path)
+      message("Modèle exporté avec succès au format PMML : ", file_path)
     }
+    
 
 
     

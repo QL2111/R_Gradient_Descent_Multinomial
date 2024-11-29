@@ -5,12 +5,12 @@
 library(R6)
 
 # Charger les fichiers de fonctions
-source("DataPreparer.R")
-source("factor_analysis_mixed.R")
-source("LogisticRegressionMultinomial.R")
+source("R/DataPreparer.R")
+source("R/factor_analysis_mixed.R")
+source("R/LogisticRegressionMultinomial.R")
 
 # Charger le jeu de données après téléchargement de Kaggle
-data_path <- "StudentPerformanceFactors.csv"  # Remplacez par le chemin de votre fichier
+data_path <- "Data/StudentPerformanceFactors.csv"  # Remplacez par le chemin de votre fichier
 data <- read.csv(data_path)
 
 # S'assurer que la variable cible est un facteur
@@ -43,7 +43,7 @@ y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="sgd", use_early_stopping=TRUE, regularization = "none", lambda1 = 0.0, lambda2 = 0.0)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization = "lasso")
 model$fit(X_train_matrix, y_train_numeric)
 
 # Prédire sur l'ensemble de test
