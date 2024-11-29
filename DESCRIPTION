@@ -1,9 +1,9 @@
-Package: R_Gradient_Descent_Multinomial_Logistic_Regression
+Package: M2LogReg
 Type: Package
 Title: Multinomial Logistic Regression with Gradient Descent
 Version: 0.1.0
-Author: Quentin LIM, AWA KARAMOKO, TAHINARISOA DANIELLA RAKOTONDRATSIMBA
-Maintainer: quentinlim384@gmail.com
+Author: Quentin LIM
+Maintainer: Quentin L <quentinlim384@gmail.com>
 Description: Fournit des classes pour la régression logistique multinomiale et la préparation des données avec options de one-hot encoding et d'analyse factorielle.
 License: MIT
 Encoding: UTF-8

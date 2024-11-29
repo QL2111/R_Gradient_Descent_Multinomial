@@ -1,5 +1,4 @@
 export(DataPreparer)
 export(LogisticRegressionMultinomial)
-export(factor_analysis_mixed)
 importFrom(R6, R6Class)
 importFrom(stats, model.matrix, sd, rnorm)

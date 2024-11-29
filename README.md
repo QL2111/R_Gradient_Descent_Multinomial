@@ -13,8 +13,6 @@ https://docs.google.com/document/d/156TOP_Mk1kutaAZslE7FNKdw-8WSfL8yQg_orYBqDE0/
 
 ## Multinomial Target Handling
 
-## Parallel vs Sequential Benchmark
-
 ## Authors and License
 This project was developed by AWA KARAMOKO, TAHINARISOA DANIELLA RAKOTONDRATSIMBA, QUENTIN LIM as part of the Master 2 SISE program (2024-2025) at Lyon 2 Université Lumière.
 Distributed under the MIT License.
