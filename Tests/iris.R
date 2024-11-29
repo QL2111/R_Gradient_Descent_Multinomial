@@ -37,25 +37,25 @@ X_test_matrix <- as.matrix(X_test)
 y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
-# # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-# model <- LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 1000)
-# model$fit(X_train_matrix, y_train_numeric)
+# Initialiser et ajuster le modèle sur l'ensemble d'entraînement
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 1000)
+model$fit(X_train_matrix, y_train_numeric)
 
-# # Prédire sur l'ensemble de test
-# predictions <- model$predict(X_test_matrix)
+# Prédire sur l'ensemble de test
+predictions <- model$predict(X_test_matrix)
 
-# # Afficher les prédictions
-# # print(predictions)
+# Afficher les prédictions
+# print(predictions)
 
-# # Calculer et afficher l'accuracy
-# accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
-# cat("Accuracy:", accuracy, "\n")
+# Calculer et afficher l'accuracy
+accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
+cat("Accuracy:", accuracy, "\n")
 
-# # Matrice de confusion pour évaluer les performances
-# confusion_matrix <- table(Predicted = predictions, Actual = y_test_numeric)
-# # print(confusion_matrix)
-# model$print(X_test_matrix, y_test_numeric)
-# # Importance des variables
-# model$var_importance()
+# Matrice de confusion pour évaluer les performances
+confusion_matrix <- table(Predicted = predictions, Actual = y_test_numeric)
+# print(confusion_matrix)
+model$print(X_test_matrix, y_test_numeric)
+# Importance des variables
+model$var_importance()
 
 # nolint end

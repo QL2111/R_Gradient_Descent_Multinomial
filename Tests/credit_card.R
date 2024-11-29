@@ -19,27 +19,27 @@ data <- read.csv(data_path)
 # S'assurer que la variable cible est un facteur
 data$Approved <- as.factor(data$Approved)
 
-# Diviser les données en ensembles d'entraînement et de test
+# Diviser et préparer les données en ensembles d'entraînement et de test
 set.seed(42)  # Pour la reproductibilité
-train_indices <- sample(1:nrow(data), size = 0.7 * nrow(data))  # 70% pour l'entraînement
-train_data <- data[train_indices, ]
-test_data <- data[-train_indices, ]
 
-# Séparer les caractéristiques et la variable cible
-X_train <- train_data[, -which(names(train_data) == "Approved")]
-y_train <- train_data$Approved
-
-X_test <- test_data[, -which(names(test_data) == "Approved")]
-y_test <- test_data$Approved
-
-# Préparer les prédicteurs sans inclure la variable cible
 data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-prepared_X_train <- data_prep$prepare_data(X_train)
-prepared_X_test <- data_prep$prepare_data(X_test)
+prepared_data <- data_prep$prepare_data(data, "Approved", 0.7, stratify = TRUE)
+
+# Accéder aux données préparées
+X_train <- prepared_data$X_train
+X_test <- prepared_data$X_test
+y_train <- prepared_data$y_train
+y_test <- prepared_data$y_test
+
+# Afficher les proportions des classes dans les ensembles d'entraînement et de test
+cat("Proportions des classes dans l'ensemble d'entraînement :\n")
+print(table(y_train) / length(y_train))
+cat("Proportions des classes dans l'ensemble de test :\n")
+print(table(y_test) / length(y_test))
 
 # Convertir les données préparées en matrices
-X_train_matrix <- as.matrix(prepared_X_train)
-X_test_matrix <- as.matrix(prepared_X_test)
+X_train_matrix <- as.matrix(X_train)
+X_test_matrix <- as.matrix(X_test)
 
 # Convertir la variable cible en valeurs numériques
 y_train_numeric <- as.numeric(y_train)
