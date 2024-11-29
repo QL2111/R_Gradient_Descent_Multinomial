@@ -499,9 +499,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       for (i in 1:length(top_variables)) {
         cat(top_variables[i], "\n")
       }
-      
-      # Return the selected features as a subset of the original data
-      #return(top_variables)
     }
  
   )

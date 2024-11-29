@@ -129,7 +129,7 @@ model$plot_loss()
 factor_scores <- factor_analysis_mixed(iris)
 
 # Afficher les résultats
-print(factor_scores)
+print(factor_scores$eig)
 ```
 
 
