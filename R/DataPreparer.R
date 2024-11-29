@@ -2,8 +2,9 @@
 # DataPreparer.R
 # Générer doc
 # devtools::document("D:/GitHub/R_Gradient_Descent_Multinomial")
-# LIBRARY CARET createDataPartition
+# LIBRARY CARET createDataPartition, librarie factoextra et FactoMineR pour l'analyse factorielle
 # Préprocess la variable cible peut poser des problèmes ? Cas de variable cible encodée en numérique, il ne faudrait pas la standardiser
+
 
 #' @title Data Preparation Class
 #' @description The `DataPreparer` class provides methods to standardize quantitative data and encode qualitative data, allowing the option of factor analysis for mixed data.
@@ -134,27 +135,36 @@ DataPreparer = R6::R6Class("DataPreparer",
       prepared_data = do.call(cbind, prepared_list)
       
       if (self$use_factor_analysis) {
-        cat("Utilisation de l'analyse factorielle \n")
-        # Apply factor analysis
+        library(FactoMineR)
+        library(factoextra)
         
-        # Adjust weights for modalities (optional depending on desired method)
-        if (!is.null(prepared_list$qualitative)) {
-          modal_weights = apply(prepared_list$qualitative, 2, sd)
-          prepared_list$qualitative = sweep(prepared_list$qualitative, 2, modal_weights, FUN = "/")
+        cat("Utilisation de l'Analyse Factorielle des Données Mixtes (AFDM)\n")
+        # cat("Dimensions des données envoyées à FAMD :", dim(prepared_data), "\n")
+
+        # Effectuer l'AFDM
+        famd_result <- FAMD(data, graph = FALSE, ncp = ncol(prepared_data))
+        
+        # Afficher les dimensions des données pour vérification
+        print(dim(prepared_data))
+
+        # Extraire les valeurs propres et calculer la variance expliquée cumulée
+        eig_values <- famd_result$eig[, 3]  # Colonne de la variance expliquée cumulée (en pourcentage)
+
+        # Trouver le nombre de dimensions nécessaires pour atteindre au moins 90% de la variance expliquée cumulée
+        ncp_index <- which(eig_values >= 95)[1]
+        
+        # Si aucune valeur ne dépasse 90%, garder toutes les dimensions
+        if (is.na(ncp_index)) {
+          ncp <- min(ncol(prepared_data), nrow(prepared_data))  # On ne peut pas garder plus que le minimum de lignes ou colonnes
+        } else {
+          ncp <- ncp_index
         }
-        # Perform principal component analysis (PCA)
-        covariance_matrix = cov(prepared_data)  # Covariance matrix
-        eig = eigen(covariance_matrix)          # Eigenvalues and eigenvectors decomposition
-        eigenvalues = eig$values
-        eigenvectors = eig$vectors
-        # Calculate individual coordinates on principal components
-        principal_components = as.matrix(prepared_data) %*% eigenvectors
-        # print(principal_components)
-        # Return the first principal dimensions (2 for now)
-        coord = as.data.frame(principal_components[, 1:2])  # Keep the first two dimensions
-        colnames(coord) = c("Dim1", "Dim2")
-        # print(coord)
-        return(coord)
+
+        cat("Nombre de dimensions retenues :", ncp, "\n")
+        
+        # Réduire les données aux dimensions nécessaires
+        reduced_data <- famd_result$ind$coord[, 1:ncp, drop = FALSE]
+        return(reduced_data)
       } else {
         cat("Utilisation de l'encodage one-hot \n")
         return(prepared_data)

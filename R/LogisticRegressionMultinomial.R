@@ -8,11 +8,11 @@
 #' @TODO: 
 #' Rshiny -> Utiliser une librairie, retaper
 #' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS
-#' #' # Implémenter analyse factorielle dans le datapreparer + tester avec studentperformance # Quentin
-#' #' Incorporer AFDM dans data preparer # Quentin  ncp pour le nombre de dimensions à garder(variables explicatives cumulé>95%) ($eig)
+#' #' # Implémenter analyse factorielle dans le datapreparer + tester avec studentperformance # Quentin   #### OK
+#' #' Incorporer AFDM dans data preparer # Quentin  ncp pour le nombre de dimensions à garder(variables explicatives cumulé>95%) # Quentin #### OK MAIS accuracy faible pour student performance
 #' Ajouter var select # Awa #### à tester - Quentin (select_variables)
 #' Changer les levels ? Répréesentation en 1,2,3 mais plus tard garder les labels? # Quentin # Casse les autres fonctions -> Laisser pour l'isntatn
-#' Mettre un Imputer sur le datapreparer, Missing values aussi à mettre dans le datapreparer # Quentin
+#' Mettre un Imputer sur le datapreparer, Missing values aussi à mettre dans le datapreparer et outliers avant le scaler # Quentin
 #' ReadMe Github 
 #' Video explicative(tuto)
 #' legends (nom des classes) auc PLOT # Quentin (à voir si on garde ? Rshiny)
@@ -22,7 +22,8 @@
 #' help # Daniella/Quentin
 #' Ajouter régularisation + export PMML dans LogisticRegressionMultinomial dans LogistRegression.R # Quentin
 #' SMOTE # Quentin
-#' Imputation par KNN ? # Quentin
+#' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
+#' Outliers ? #Quentin
 #' @PACKAGE IMPORTER
 #' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  stats(mode)
 #' @NEXT
@@ -552,28 +553,45 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       linear_model <- X %*% self$coefficients
       probabilities <- self$softmax(linear_model)
       return(probabilities)
+    },
+
+
+    #' Select Important Variables Based on Coefficients
+    #'
+    #' This function selects the most important variables based on the absolute value of the coefficients
+    #' from a logistic regression model. It calculates the importance of each feature, ranks them, and 
+    #' selects the top `num_variables` features.
+    #'
+    #' @param num_variables An integer specifying the number of top variables to select.
+    #' @return A character vector containing the names of the selected top variables.
+    #' @examples
+    #' \dontrun{
+    #'   selected_vars <- select_variables(5)
+    #'   print(selected_vars)
+    #' }
+    #' @export
+    select_variables = function(num_variables) {
+      # Calculate the importance of each feature based on the absolute value of the coefficients
+      coef_matrix <- abs(self$coefficients[-1, ])  # Exclude the intercept term
+      importance_scores <- rowSums(coef_matrix)    # Sum of absolute coefficients for each feature
+      importance_ranked <- sort(importance_scores, decreasing = TRUE)
+      
+      # Select the top 'num_variables' features
+      top_variables <- names(importance_ranked)[1:num_variables]
+      
+      # Print the selected variables
+      cat("Selected Variables:\n")
+      for (i in 1:length(top_variables)) {
+        cat(top_variables[i], "\n")
+      }
+      
+      # Return the selected features as a subset of the original data
+      return(top_variables)
     }
 
     
   )
 )
 
-# select_variables = function(num_variables) {
-#       # Calculate the importance of each feature based on the absolute value of the coefficients
-#       coef_matrix <- abs(self$coefficients[-1, ])  # Exclude the intercept term
-#       importance_scores <- rowSums(coef_matrix)    # Sum of absolute coefficients for each feature
-#       importance_ranked <- sort(importance_scores, decreasing = TRUE)
-      
-#       # Select the top 'num_variables' features
-#       top_variables <- names(importance_ranked)[1:num_variables]
-      
-#       # Print the selected variables
-#       cat("Selected Variables:\n")
-#       for (i in 1:length(top_variables)) {
-#         cat(top_variables[i], "\n")
-#       }
-      
-#       # Return the selected features as a subset of the original data
-#       #return(top_variables)
-#     }
+
 # nolint end
