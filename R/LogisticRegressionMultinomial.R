@@ -8,18 +8,18 @@
 #' @TODO: 
 #' Rshiny -> Utiliser une librairie, retaper
 #' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS
-#' #' # Implémenter analyse factorielle dans le datapreparer + tester avec studentperformance # Quentin   #### OK
+#' Test Package # Awa
+#' Faire mini batch # Quentin (Descente de gradient)
 #' #' Incorporer AFDM dans data preparer # Quentin  ncp pour le nombre de dimensions à garder(variables explicatives cumulé>95%) # Quentin #### OK MAIS accuracy faible pour student performance
 #' Ajouter var select # Awa #### à tester - Quentin #### OK -> pas de différences avec var importance ? 
 #' Revoir différence entre var select et var importance # Awa 
 #' Changer les levels ? Répréesentation en 1,2,3 mais plus tard garder les labels? # Quentin # Casse les autres fonctions -> Laisser pour l'isntatn
 #' Mettre un Imputer sur le datapreparer, Missing values aussi à mettre dans le datapreparer et outliers avant le scaler # Quentin
 #' ReadMe Github 
-#' Video explicative(tuto)
+#' Video explicative(tuto) (si package ne marche pas)
 #' legends (nom des classes) auc PLOT # Quentin (à voir si on garde ? Rshiny)
 #' Améliroer le roc AUC dans shiny(éviter de calculer 2 fois) # Quentin
 #' Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation # Daniella
-#' Device model mauvais test -> essayer avec une autre variable cible(User Behavior classification pour voir si l'accuracy monte) # Awa
 #' help # Daniella/Quentin
 #' Ajouter régularisation + export PMML dans LogisticRegressionMultinomial dans LogistRegression.R # Quentin
 #' SMOTE # Quentin
@@ -32,14 +32,17 @@
 #' #' revoir SGD
 #' #' FIT REGRESSION LOGISTIQUE VOIR STRATEGIE Mini Batch(nb paramètre de l'algorithme) au lieu de Batch Gradient Descent(Tout l'ensemble de données) 
 #' @BONUS
-#' Mettre en image Docker
+#' Mettre en image Docker # Awa
+#' Améliorer SGD Optimizer # Awa
 #' #' Paralleliser les calculs
-#' #' Analyse Factorielle (Plus de dimension) # Awa
+#' #' Analyse Factorielle (Plus de dimension) # Quentin ### OK
 #' #' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles,  #### EN COURS + de champs possibles ?
 
 #' 
 #' @DONE
 #' #' Exportation en PMML # Daniella ### OK
+#' #' #' # Implémenter analyse factorielle dans le datapreparer + tester avec studentperformance # Quentin   #### OK
+#' #' Device model mauvais test -> essayer avec une autre variable cible(User Behavior classification pour voir si l'accuracy monte) # Awa #### OK
 #' #' Tester Analyse factorielle multiclass tester avec student_performancce + Iris + JEU DE DONNEES avec beaucoup de col # Awa Iris + StudentPerformance # OK
 #' #' intégrer le train/test split dans le datapreparer  + stratify # Quentin ### OK
 #' #' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Daniella
@@ -63,7 +66,6 @@
 #' IMPLEMENTER IN EARLY STOPPING avec la fonction de loss Implémenter un validation set ? Plus DataPreparer ? # Quentin #### OK
 #' Ajouter une condition pour l'early stopping, peu de données, pas bien de faire un validation set # Quentin #### OK
 #' #' Tester avec StudentPerformance # Daniella Quentin OK #### A REVOIR
-#' mini batch au lieu de online ? (GRadient descent)
 
 
 
