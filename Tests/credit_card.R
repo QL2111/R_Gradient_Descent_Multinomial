@@ -22,7 +22,7 @@ data$Approved <- as.factor(data$Approved)
 # Diviser et préparer les données en ensembles d'entraînement et de test
 set.seed(42)  # Pour la reproductibilité
 
-data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+data_prep <- DataPreparer$new(use_factor_analysis = TRUE)
 prepared_data <- data_prep$prepare_data(data, "Approved", 0.7, stratify = TRUE)
 
 # Accéder aux données préparées
@@ -56,11 +56,12 @@ predictions <- model$predict(X_test_matrix)
 # print(predictions)
 
 # Calculer et afficher l'accuracy
-accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
-cat("Accuracy:", accuracy, "\n")
+# accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
+# cat("Accuracy:", accuracy, "\n")
 
 # Matrice de confusion pour évaluer les performances
 model$summary()
+model$plot_loss()
 
 model$print(X_test_matrix, y_test_numeric)
 

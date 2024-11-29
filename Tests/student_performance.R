@@ -22,11 +22,16 @@ set.seed(42)  # Pour la reproductibilité
 data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
 prepared_data <- data_prep$prepare_data(data, "Access_to_Resources", 0.7, stratify = TRUE)
 
+
+
 # Accéder aux données préparées
 X_train <- prepared_data$X_train
 X_test <- prepared_data$X_test
 y_train <- prepared_data$y_train
 y_test <- prepared_data$y_test
+
+# Check AFDM (avec one hot encoder 32 dimensions) # 27 dimensions sans one hot encoder, encore réduire ?
+# print(ncol(X_train))
 
 # Afficher les proportions des classes dans les ensembles d'entraînement et de test
 cat("Proportions des classes dans l'ensemble d'entraînement :\n")
@@ -43,7 +48,7 @@ y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="adam", use_early_stopping=TRUE)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 500, loss="logistique", optimizer="adam", use_early_stopping=TRUE)
 model$fit(X_train_matrix, y_train_numeric)
 
 # Prédire sur l'ensemble de test

@@ -13,7 +13,7 @@ iris$Species <- as.factor(iris$Species)
 set.seed(42)  # Pour la reproductibilité
 
 
-data_prep <- DataPreparer$new(use_factor_analysis = FALSE) # On utilise factor analysis pour les variables qualitatives
+data_prep <- DataPreparer$new(use_factor_analysis = TRUE) # On utilise factor analysis pour les variables qualitatives
 prepared_data <- data_prep$prepare_data(iris, "Species", 0.7, FALSE) # Jeu de données, variable cible, proportion d'entraînement, stratification
 # print(prepared_data)
 # Accéder aux données préparées
@@ -38,7 +38,7 @@ y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 1000)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 500)
 model$fit(X_train_matrix, y_train_numeric)
 
 # Prédire sur l'ensemble de test
