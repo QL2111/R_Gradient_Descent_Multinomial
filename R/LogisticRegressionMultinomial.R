@@ -26,7 +26,7 @@
 #' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
 #' Outliers ? #Quentin
 #' @PACKAGE IMPORTER
-#' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  stats(mode)
+#' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  
 #' @NEXT
 #' 
 #' #' revoir SGD
@@ -591,6 +591,25 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       # Return the selected features as a subset of the original data
       return(top_variables)
     }
+
+    # Différencen entre var_importance et select_variables ?
+    # var_importance = function() {
+    #   coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
+    #   feature_names <- colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
+      
+    #   # Importance par classe
+    #   importance_scores <- rowMeans(coef_matrix)  # Moyenne des coefficients absolus pour toutes les classes
+    #   importance_ranked <- sort(importance_scores, decreasing = TRUE) # Trier par ordre décroissant
+      
+    #   # Afficher les importances
+    #   cat("Variable Importance (sorted):\n")
+    #   for (i in seq_along(importance_ranked)) {
+    #     cat(names(importance_ranked)[i], ": ", round(importance_ranked[i], 4), "\n")
+    #   }
+      
+    #   # Retourner les scores
+    #   #return(importance_ranked)
+    # },
 
     
   )
