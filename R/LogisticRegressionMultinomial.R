@@ -25,7 +25,7 @@
 #' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
 #' Outliers ? #Quentin
 #' @PACKAGE IMPORTER
-#' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  stats(mode)
+#' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  stats(mode) + pml
 #' @NEXT
 #' 
 #' #' revoir SGD
@@ -88,7 +88,7 @@
 #' @field epsilon Numeric. Small constant for numerical stability in Adam optimizer. Default is 1e-8.
 #'
 #' @export
-LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
+LogisticRegressionMultinomial = R6Class("LogisticRegressionMultinomial",
   public = list(
     coefficients = NULL,
     learning_rate = NULL,
@@ -104,6 +104,10 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
 
     use_early_stopping = NULL, # Use early stopping
     patience = NULL, # Early stopping patience
+
+    regularization = NULL, #type (none, l1, l2, elasticnet)
+    lambda = NULL, #coefficient
+    alpha = NULL, #for elasticnet
     
     # class_labels = NULL,  # Store the class labels to rename them later
     
@@ -115,7 +119,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param use_early_stopping Logical. Whether to use early stopping. Default is TRUE.
     #' @param patience Integer. Number of iterations to wait for improvement before stopping early. Default is 10.
     #' @return A new `LogisticRegressionMultinomial` object.
-    initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, use_early_stopping = TRUE) {
+    initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20,
+     use_early_stopping = TRUE, regularization = "l2", lambda = 1, alpha = 0.5) {
       self$learning_rate = learning_rate
       self$num_iterations = num_iterations
       self$loss_history = numeric(num_iterations)
@@ -124,8 +129,11 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       self$beta1 = beta1
       self$beta2 = beta2
       self$epsilon = epsilon
-      self$patience <- patience
-      self$use_early_stopping <- use_early_stopping
+      self$patience = patience
+      self$use_early_stopping = use_early_stopping
+      self$regularization = regularization
+      self$lambda = lambda
+      self$alpha = alpha
 
 
       
@@ -148,9 +156,9 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     fit = function(X, y, validation_split = 0.2) {
       y = factor(y)  # Convert y to factor to ensure consistent class levels
 
-      # self$class_labels <- levels(y)  # Store the class labels for later use
+      # self$class_labels = levels(y)  # Store the class labels for later use
 
-      unique_classes = levels(y)  # Use levels of factor y      num_classes <- length(unique_classes)
+      unique_classes = levels(y)  # Use levels of factor y      num_classes = length(unique_classes)
       num_samples = nrow(X)
       num_features = ncol(X)
       num_classes = length(unique_classes)
@@ -158,27 +166,27 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       if (self$use_early_stopping) {
         # Split data into training and validation sets
         set.seed(123)  # For reproducibility
-        validation_indices <- sample(1:num_samples, size = floor(validation_split * num_samples))
-        X_val <- X[validation_indices, ]
-        y_val <- y[validation_indices]
-        X_train <- X[-validation_indices, ]
-        y_train <- y[-validation_indices]
+        validation_indices = sample(1:num_samples, size = floor(validation_split * num_samples))
+        X_val = X[validation_indices, ]
+        y_val = y[validation_indices]
+        X_train = X[-validation_indices, ]
+        y_train = y[-validation_indices]
       } else {
-        X_train <- X
-        y_train <- y
-        X_val <- NULL
-        y_val <- NULL
+        X_train = X
+        y_train = y
+        X_val = NULL
+        y_val = NULL
       }
       
       # Initialize coefficients
-      self$coefficients <- matrix(0, nrow = num_features + 1, ncol = num_classes)
-      X_train <- cbind(1, X_train)  # Add intercept term
+      self$coefficients = matrix(0, nrow = num_features + 1, ncol = num_classes)
+      X_train = cbind(1, X_train)  # Add intercept term
       if (!is.null(X_val)) {
-        X_val <- cbind(1, X_val)  # Add intercept term
+        X_val = cbind(1, X_val)  # Add intercept term
       }
       
-      best_loss <- Inf
-      patience_counter <- 0
+      best_loss = Inf
+      patience_counter = 0
       
       if (self$optimizer == "adam") {
         self$adam_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
@@ -206,7 +214,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       y = factor(y, levels = unique_classes)  # Ensure consistent class ordering
       one_hot = matrix(0, nrow = length(y), ncol = length(unique_classes))
       for (i in 1:length(y)) {
-        one_hot[i, as.integer(y[i])] <- 1
+        one_hot[i, as.integer(y[i])] = 1
       }
       return(one_hot)
     },
@@ -216,11 +224,11 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param X A data frame or matrix of predictors, where rows are samples and columns are features.
     #' @return A vector of predicted class labels for each sample.
     predict = function(X) {
-      X <- cbind(1, X)  # Add intercept term
-      linear_model <- X %*% self$coefficients
-      probabilities <- self$softmax(linear_model)
-      # class_indices <- apply(probabilities, 1, which.max) # Find the class with the highest probability
-      # class_labels <- levels(self$y)[class_indices]  # Convert indices to class labels
+      X = cbind(1, X)  # Add intercept term
+      linear_model = X %*% self$coefficients
+      probabilities = self$softmax(linear_model)
+      # class_indices = apply(probabilities, 1, which.max) # Find the class with the highest probability
+      # class_labels = levels(self$y)[class_indices]  # Convert indices to class labels
       # return(class_labels)
       return(apply(probabilities, 1, which.max))  # Convert back to 0 and 1 instead of 1 and 2
     },
@@ -233,12 +241,12 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' }
     #' @export
     var_importance = function() {
-      coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
-      feature_names <- colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
+      coef_matrix = abs(self$coefficients[-1, ])  # Exclure l'intercept
+      feature_names = colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
       
       # Importance par classe
-      importance_scores <- rowMeans(coef_matrix)  # Moyenne des coefficients absolus pour toutes les classes
-      importance_ranked <- sort(importance_scores, decreasing = TRUE) # Trier par ordre décroissant
+      importance_scores = rowMeans(coef_matrix)  # Moyenne des coefficients absolus pour toutes les classes
+      importance_ranked = sort(importance_scores, decreasing = TRUE) # Trier par ordre décroissant
       
       # Afficher les importances
       cat("Variable Importance (sorted):\n")
@@ -286,17 +294,17 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       
       # Predict probabilities if not provided
       if (is.null(probabilities)) {
-        X_test <- cbind(1, X_test)  # Add intercept term
-        linear_model <- X_test %*% self$coefficients
-        probabilities <- self$softmax(linear_model)
+        X_test = cbind(1, X_test)  # Add intercept term
+        linear_model = X_test %*% self$coefficients
+        probabilities = self$softmax(linear_model)
       }
       
       # Ensure y_test is a factor
-      y_test <- factor(y_test)
-      levels_y_test <- levels(y_test)
+      y_test = factor(y_test)
+      levels_y_test = levels(y_test)
       
       # Calculate ROC AUC for each class strategy One vs All
-      auc_values <- numeric(ncol(probabilities))
+      auc_values = numeric(ncol(probabilities))
       
       # Initialize an empty plot
       plot(NULL, xlim = c(0, 1), ylim = c(0, 1), xlab = "1 - Specificity (False Positive Rate)", 
@@ -305,9 +313,9 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       
       # Loop through each class
       for (i in 1:ncol(probabilities)) {
-        binary_response <- as.numeric(y_test == levels_y_test[i])
-        roc_curve <- roc(binary_response, probabilities[, i], quiet = TRUE) # library pROC
-        auc_values[i] <- auc(roc_curve)
+        binary_response = as.numeric(y_test == levels_y_test[i])
+        roc_curve = roc(binary_response, probabilities[, i], quiet = TRUE) # library pROC
+        auc_values[i] = auc(roc_curve)
         
         # Add ROC curve to the plot
         lines(1 - roc_curve$specificities, roc_curve$sensitivities, col = i + 1, lwd = 2)
@@ -341,6 +349,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       cat("Learning Rate: ", self$learning_rate, "\n")
       cat("Number of Iterations: ", self$num_iterations, "\n")
       cat("Loss Function: ", self$loss_name, "\n")  
+      cat("Regularization: ", self$regularization, "\n")
+
       if (self$optimizer == "adam") {
         cat("Beta1 (Adam): ", self$beta1, "\n")
         cat("Beta2 (Adam): ", self$beta2, "\n")
@@ -372,11 +382,11 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @import MLmetrics
     #' @export
     print = function(X_test, y_test) {
-      probabilities <- self$predict_proba(X_test)
-      predictions <- self$predict(X_test)
+      probabilities = self$predict_proba(X_test)
+      predictions = self$predict(X_test)
       
       # # Confusion Matrix # Already included in the caret report
-      # confusion_matrix <- table(Predicted = predictions, Actual = y_test)
+      # confusion_matrix = table(Predicted = predictions, Actual = y_test)
       # print("Confusion Matrix:")
       # print(confusion_matrix)
       
@@ -384,16 +394,16 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       #  F1-score, precision, Recall, AUC
       library(caret)
       library(MLmetrics)
-      report <- confusionMatrix(as.factor(predictions), as.factor(y_test))
+      report = confusionMatrix(as.factor(predictions), as.factor(y_test))
 
       print(report)
       
-      f1_weighted <- F1_Score(y_pred = predictions, y_true = y_test) # use MLmetrics
+      f1_weighted = F1_Score(y_pred = predictions, y_true = y_test) # use MLmetrics
       cat("F1 Score:", f1_weighted, "\n")
 
       self$plot_auc(X_test, y_test, probabilities)
       
-        output <- capture.output({
+        output = capture.output({
         print("Confusion Matrix:")
         # print(confusion_matrix)
         print(report)
@@ -413,15 +423,15 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param y_pred A numeric vector of predicted probabilities.
     #' @return A numeric value representing the log loss.
     #' @examples
-    #' y_true <- c(1, 0, 1, 0)
-    #' y_pred <- c(0.9, 0.1, 0.8, 0.2)
+    #' y_true = c(1, 0, 1, 0)
+    #' y_pred = c(0.9, 0.1, 0.8, 0.2)
     #' log_loss(y_true, y_pred)
     #' @export
     # LOSS FUNCTIONS
     log_loss = function(y_true, y_pred) {
-      epsilon <- 1e-15  # Small value to prevent log(0)
-      y_pred <- pmax(pmin(y_pred, 1 - epsilon), epsilon) 
-      loss <- -sum(y_true * log(y_pred))  # Régularisez par 1/N ?
+      epsilon = 1e-15  # Small value to prevent log(0)
+      y_pred = pmax(pmin(y_pred, 1 - epsilon), epsilon) 
+      loss = -sum(y_true * log(y_pred))  # Régularisez par 1/N ?
       return(loss)
 
     },
@@ -434,8 +444,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param y_pred A numeric vector of predicted values.
     #' @return A numeric value representing the MSE loss.
     #' @examples
-    #' y_true <- c(1, 0, 1, 0)
-    #' y_pred <- c(0.9, 0.1, 0.8, 0.2)
+    #' y_true = c(1, 0, 1, 0)
+    #' y_pred = c(0.9, 0.1, 0.8, 0.2)
     #' mse_loss(y_true, y_pred)
     #' @export
     #'
@@ -447,6 +457,25 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #   0.5 * sum((y_true - y_pred)^2)
     # }
 
+    apply_regularization = function(gradient, regularization, lambda, alpha) {
+      if (self$regularization == "l2") {
+        # Ridge: L2 (penalty is lambda * coefficients)
+        return(gradient + self$lambda * self$coefficients)
+      } else if (self$regularization == "l1") {
+        # Lasso: L1 (penalty is lambda * sign(coefficients))
+        return(gradient + self$lambda * sign(self$coefficients))
+      } else if (self$regularization == "elasticnet") {
+        # ElasticNet
+        l1_part <- self$alpha * self$lambda * sign(self$coefficients)
+        l2_part <- (1 - self$alpha) * self$lambda * self$coefficients
+        return(gradient + l1_part + l2_part)
+      } else {
+        # No regularization
+        return(gradient)
+      }
+    },
+
+
 
     #' @description Adam optimizer for updating coefficients.
     #' @param X Matrix of predictors with intercept term added.
@@ -456,41 +485,46 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param num_features Number of features.
     #' @param num_classes Number of classes.
     adam_optimizer = function(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter) {
-      m <- matrix(0, nrow = num_features + 1, ncol = num_classes)
-      v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
-      one_hot_y <- self$one_hot_encode(y_train, unique_classes) 
+      m = matrix(0, nrow = num_features + 1, ncol = num_classes)
+      v = matrix(0, nrow = num_features + 1, ncol = num_classes)
+      one_hot_y = self$one_hot_encode(y_train, unique_classes) 
 
       for (i in 1:self$num_iterations) {
-        linear_model <- X_train %*% self$coefficients 
-        probabilities <- self$softmax(linear_model)
-        # one_hot_y <- self$one_hot_encode(y_train, unique_classes)
-        loss <- self$loss_function(one_hot_y, probabilities)
-        self$loss_history[i] <- loss
+        linear_model = X_train %*% self$coefficients 
+        probabilities = self$softmax(linear_model)
+        # one_hot_y = self$one_hot_encode(y_train, unique_classes)
+        loss = self$loss_function(one_hot_y, probabilities)
+        self$loss_history[i] = loss
         
         cat("Iteration:", i, "Loss:", loss, "\n")
 
-        error <- probabilities - one_hot_y
-        gradient <- t(X_train) %*% error / num_samples
+        error = probabilities - one_hot_y
+        gradient = t(X_train) %*% error / num_samples
 
-        m <- self$beta1 * m + (1 - self$beta1) * gradient
-        v <- self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
+        # Apply regularization
+        if (!is.null(self$regularization)) {
+          gradient <- gradient + self$apply_regularization(self$coefficients, self$regularization, lambda, alpha)
+        }
+
+        m = self$beta1 * m + (1 - self$beta1) * gradient
+        v = self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
         
-        m_hat <- m / (1 - self$beta1 ^ i)
-        v_hat <- v / (1 - self$beta2 ^ i)
+        m_hat = m / (1 - self$beta1 ^ i)
+        v_hat = v / (1 - self$beta2 ^ i)
 
-        self$coefficients <- self$coefficients - self$learning_rate * m_hat / (sqrt(v_hat) + self$epsilon)
+        self$coefficients = self$coefficients - self$learning_rate * m_hat / (sqrt(v_hat) + self$epsilon)
 
         # Early stopping
         if (self$use_early_stopping) {
-          val_probabilities <- self$softmax(X_val %*% self$coefficients)
-          val_one_hot_y <- self$one_hot_encode(y_val, unique_classes)
-          val_loss <- self$loss_function(val_one_hot_y, val_probabilities)
+          val_probabilities = self$softmax(X_val %*% self$coefficients)
+          val_one_hot_y = self$one_hot_encode(y_val, unique_classes)
+          val_loss = self$loss_function(val_one_hot_y, val_probabilities)
           
           if (val_loss < best_loss) {
-            best_loss <- val_loss
-            patience_counter <- 0
+            best_loss = val_loss
+            patience_counter = 0
           } else {
-            patience_counter <- patience_counter + 1
+            patience_counter = patience_counter + 1
           }
           
           if (patience_counter >= self$patience) {
@@ -510,30 +544,36 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param num_classes Number of classes.
     sgd_optimizer = function(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter) {
       for (i in 1:self$num_iterations) {
-        linear_model <- X_train %*% self$coefficients
-        probabilities <- self$softmax(linear_model)
-        one_hot_y <- self$one_hot_encode(y_train, unique_classes)
-        loss <- self$loss_function(one_hot_y, probabilities)
-        self$loss_history[i] <- loss
+        linear_model = X_train %*% self$coefficients
+        probabilities = self$softmax(linear_model)
+        one_hot_y = self$one_hot_encode(y_train, unique_classes)
+        loss = self$loss_function(one_hot_y, probabilities)
+        self$loss_history[i] = loss
         
         cat("Iteration:", i, "Loss:", loss, "\n")
 
-        error <- probabilities - one_hot_y
-        gradient <- t(X_train) %*% error / num_samples
+        error = probabilities - one_hot_y
+        gradient = t(X_train) %*% error / num_samples
 
-        self$coefficients <- self$coefficients - self$learning_rate * gradient
+        # Apply regularization
+        if (!is.null(self$regularization)) {
+          gradient <- gradient + self$apply_regularization(self$coefficients, self$regularization, lambda, alpha)
+        }
+
+
+        self$coefficients = self$coefficients - self$learning_rate * gradient
 
         # Early stopping
         if (self$use_early_stopping) {
-          val_probabilities <- self$softmax(X_val %*% self$coefficients)
-          val_one_hot_y <- self$one_hot_encode(y_val, unique_classes)
-          val_loss <- self$loss_function(val_one_hot_y, val_probabilities)
+          val_probabilities = self$softmax(X_val %*% self$coefficients)
+          val_one_hot_y = self$one_hot_encode(y_val, unique_classes)
+          val_loss = self$loss_function(val_one_hot_y, val_probabilities)
           
           if (val_loss < best_loss) {
-            best_loss <- val_loss
-            patience_counter <- 0
+            best_loss = val_loss
+            patience_counter = 0
           } else {
-            patience_counter <- patience_counter + 1
+            patience_counter = patience_counter + 1
           }
           
           if (patience_counter >= self$patience) {
@@ -549,11 +589,34 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param X A data frame or matrix of predictors, where rows are samples and columns are features.
     #' @return A matrix of predicted class probabilities for each sample.
     predict_proba = function(X) {
-      X <- cbind(1, X)  # Add intercept term
-      linear_model <- X %*% self$coefficients
-      probabilities <- self$softmax(linear_model)
+      X = cbind(1, X)  # Add intercept term
+      linear_model = X %*% self$coefficients
+      probabilities = self$softmax(linear_model)
       return(probabilities)
     },
+
+    export_pmml = function(file_name = "model.pmml") {
+      if (is.null(self$coefficients)) {
+        stop("Model not yet fitted. Please run fit() first.")
+      }
+      
+      # Construction manuelle d'un objet modèle compatible
+      pmml_model <- pmml::pmml(
+        model = self,  # Vous devez adapter cet objet pour correspondre aux besoins de pmml
+        model.name = "LogisticRegressionMultinomial",
+        app.name = "Student Performance Logistic Model",
+        description = "A custom logistic regression model for Access_to_Resources",
+        coefficients = self$coefficients,
+        targetField = "Access_to_Resources",  # La variable cible
+        inputFields = colnames(X_train),  # Les noms des prédicteurs
+        fieldDescription = NULL  # Description des champs (facultatif)
+      )
+      
+      # Exportation
+      pmml::writePMML(pmml_model, file_name)
+      cat("Model exported to PMML file:", file_name, "\n")
+    },
+    
 
 
     #' Select Important Variables Based on Coefficients
@@ -566,18 +629,18 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @return A character vector containing the names of the selected top variables.
     #' @examples
     #' \dontrun{
-    #'   selected_vars <- select_variables(5)
+    #'   selected_vars = select_variables(5)
     #'   print(selected_vars)
     #' }
     #' @export
     select_variables = function(num_variables) {
       # Calculate the importance of each feature based on the absolute value of the coefficients
-      coef_matrix <- abs(self$coefficients[-1, ])  # Exclude the intercept term
-      importance_scores <- rowSums(coef_matrix)    # Sum of absolute coefficients for each feature
-      importance_ranked <- sort(importance_scores, decreasing = TRUE)
+      coef_matrix = abs(self$coefficients[-1, ])  # Exclude the intercept term
+      importance_scores = rowSums(coef_matrix)    # Sum of absolute coefficients for each feature
+      importance_ranked = sort(importance_scores, decreasing = TRUE)
       
       # Select the top 'num_variables' features
-      top_variables <- names(importance_ranked)[1:num_variables]
+      top_variables = names(importance_ranked)[1:num_variables]
       
       # Print the selected variables
       cat("Selected Variables:\n")
