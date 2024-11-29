@@ -10,7 +10,8 @@
 #' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS
 #' #' # Implémenter analyse factorielle dans le datapreparer + tester avec studentperformance # Quentin   #### OK
 #' #' Incorporer AFDM dans data preparer # Quentin  ncp pour le nombre de dimensions à garder(variables explicatives cumulé>95%) # Quentin #### OK MAIS accuracy faible pour student performance
-#' Ajouter var select # Awa #### à tester - Quentin (select_variables)
+#' Ajouter var select # Awa #### à tester - Quentin #### OK -> pas de différences avec var importance ? 
+#' Revoir différence entre var select et var importance # Awa 
 #' Changer les levels ? Répréesentation en 1,2,3 mais plus tard garder les labels? # Quentin # Casse les autres fonctions -> Laisser pour l'isntatn
 #' Mettre un Imputer sur le datapreparer, Missing values aussi à mettre dans le datapreparer et outliers avant le scaler # Quentin
 #' ReadMe Github 
@@ -25,7 +26,7 @@
 #' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
 #' Outliers ? #Quentin
 #' @PACKAGE IMPORTER
-#' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  stats(mode)
+#' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  
 #' @NEXT
 #' 
 #' #' revoir SGD
@@ -45,7 +46,7 @@
 #' #' AUC ? -> print + shiny # Quentin ####ok
 #' #' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.) # Awa(fit) #### LaTeX SGD pas efficace ?
 #' Tester var_importance et comparer avec sklearn # Quentin         #### OK
-#' #' predict_proba() pour avoir les probabilités des classes + ajouter au summary # Daniella # A REVOIR DT sklearn
+#' #' predict_proba() pour avoir les probabilités des classes + ajouter au summary # Quentin #### OK  (fait avant Daniella pour les AUC) 
 #' Factoriser code factor_analysis dans DataPreparer # Quentin ### OK
 #' #' Tester avec DeviceModel # Awa  #### OK
 #' #' Revoir le var importance(à traiter et écrire dans le rapport) # Awa #### Tester avec Iris et nnet  #### OK
@@ -588,6 +589,25 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       # Return the selected features as a subset of the original data
       return(top_variables)
     }
+
+    # Différencen entre var_importance et select_variables ?
+    # var_importance = function() {
+    #   coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
+    #   feature_names <- colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
+      
+    #   # Importance par classe
+    #   importance_scores <- rowMeans(coef_matrix)  # Moyenne des coefficients absolus pour toutes les classes
+    #   importance_ranked <- sort(importance_scores, decreasing = TRUE) # Trier par ordre décroissant
+      
+    #   # Afficher les importances
+    #   cat("Variable Importance (sorted):\n")
+    #   for (i in seq_along(importance_ranked)) {
+    #     cat(names(importance_ranked)[i], ": ", round(importance_ranked[i], 4), "\n")
+    #   }
+      
+    #   # Retourner les scores
+    #   #return(importance_ranked)
+    # },
 
     
   )
