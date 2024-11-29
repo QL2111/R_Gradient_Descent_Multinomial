@@ -16,7 +16,6 @@
 #' Video explicative(tuto)
 #' legends (nom des classes) auc PLOT # Quentin (à voir si on garde ? Rshiny)
 #' Améliroer le roc AUC dans shiny(éviter de calculer 2 fois) # Quentin
-#' Exportation en PMML # Daniella (EN COURS/ à vérifier) 
 #' Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation # Daniella
 #' Device model mauvais test -> essayer avec une autre variable cible(User Behavior classification pour voir si l'accuracy monte) # Awa
 #' help # Daniella/Quentin
@@ -37,6 +36,7 @@
 
 #' 
 #' @DONE
+#' #' Exportation en PMML # Daniella ### OK
 #' #' Tester Analyse factorielle multiclass tester avec student_performancce + Iris + JEU DE DONNEES avec beaucoup de col # Awa Iris + StudentPerformance # OK
 #' #' intégrer le train/test split dans le datapreparer  + stratify # Quentin ### OK
 #' #' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Daniella
