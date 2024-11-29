@@ -1,3 +1,4 @@
+
 # nolint start
 # Générer la documentation
 # roxygen2::roxygenise()
