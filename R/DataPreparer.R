@@ -44,6 +44,9 @@ DataPreparer = R6::R6Class("DataPreparer",
     },
 
     prepare_data = function(data, target_col, split_ratio = 0.7, stratify = FALSE) {
+      # Imputation by mode/median
+      data <- self$handle_missing_data(data)
+
       # Split the data
       split <- self$split_data(data, target_col, split_ratio, stratify)
       train_data <- split$train
@@ -62,6 +65,30 @@ DataPreparer = R6::R6Class("DataPreparer",
       y_test <- test_data[[target_col]]
       
       return(list(X_train = X_train, X_test = X_test, y_train = y_train, y_test = y_test))
+    },
+
+    handle_missing_data = function(data) {
+      quantitative_vars <- sapply(data, is.numeric)
+      qualitative_vars <- sapply(data, is.factor)
+      
+      # Imputation pour les variables quantitatives par la médiane
+      for (col in names(data)[quantitative_vars]) {
+        data[[col]][is.na(data[[col]])] <- median(data[[col]], na.rm = TRUE)
+      }
+      
+      # Imputation pour les variables qualitatives par la mode
+      for (col in names(data)[qualitative_vars]) {
+        mode_value <- calculate_mode(data[[col]])
+        
+        # Ajouter la valeur de la mode aux niveaux du facteur si elle n'existe pas déjà
+        if (!mode_value %in% levels(data[[col]])) {
+          levels(data[[col]]) <- c(levels(data[[col]]), mode_value)
+        }
+        
+        data[[col]][is.na(data[[col]])] <- mode_value
+      }
+      
+      return(data)
     },
 
     
@@ -136,6 +163,10 @@ DataPreparer = R6::R6Class("DataPreparer",
   )
 )
 
+calculate_mode <- function(x) {
+  uniq_x <- unique(x)
+  uniq_x[which.max(tabulate(match(x, uniq_x)))]
+}
 
 # Old version stable
 # DataPreparer = R6::R6Class("DataPreparer", 

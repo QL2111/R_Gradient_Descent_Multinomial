@@ -21,8 +21,12 @@
 #' Device model mauvais test -> essayer avec une autre variable cible(User Behavior classification pour voir si l'accuracy monte) # Awa
 #' help # Daniella/Quentin
 #' Ajouter régularisation + export PMML dans LogisticRegressionMultinomial dans LogistRegression.R # Quentin
+#' SMOTE # Quentin
+#' Imputation par KNN ? # Quentin
+#' @PACKAGE IMPORTER
+#' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  stats(mode)
 #' @NEXT
-#' Peut-être ne pas utiliser caret + MLmetrics + pROC 
+#' 
 #' #' revoir SGD
 #' #' FIT REGRESSION LOGISTIQUE VOIR STRATEGIE Mini Batch(nb paramètre de l'algorithme) au lieu de Batch Gradient Descent(Tout l'ensemble de données) 
 #' @BONUS
