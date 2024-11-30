@@ -20,7 +20,7 @@ data$Access_to_Resources <- as.factor(data$Access_to_Resources)
 set.seed(42)  # Pour la reproductibilité
 
 data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-prepared_data <- data_prep$prepare_data(data, "Access_to_Resources", 0.7, stratify = TRUE)
+prepared_data <- data_prep$prepare_data(data, "Access_to_Resources", 0.7, stratify = FALSE)
 
 
 
@@ -48,7 +48,12 @@ y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 500, loss="logistique", optimizer="adam", use_early_stopping=TRUE)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 300, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization = "ridge")
+# lasso F1 = 0.99
+# ridge F1 = 0.99
+# elasticnet F1 = 0.99
+# FALSE = 0.99
+
 model$fit(X_train_matrix, y_train_numeric)
 
 # Prédire sur l'ensemble de test

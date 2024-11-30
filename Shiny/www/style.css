@@ -1,0 +1,50 @@
+/* styles.css */
+
+/* Couleur de fond bleu foncé pour la barre de navigation */
+.navbar {
+    background-color: #003366;  /* Bleu foncé */
+}
+
+/* Couleur du texte en blanc pour les liens dans la navbar */
+.navbar-default .navbar-nav > li > a {
+    color: white;
+}
+
+/* Couleur du texte en blanc pour le titre de la navbar */
+.navbar-default .navbar-brand {
+    color: white;
+}
+
+/* Couleur de survol légèrement plus claire pour les liens dans la navbar */
+.navbar-default .navbar-nav > li > a:hover {
+    color: #DCE3E6;
+}
+
+/* Style global pour le texte dans les onglets */
+h2 {
+    color: #003366;
+    font-weight: bold;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+}
+
+/* Style des tables de données */
+.table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0;
+}
+
+.table th, .table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.table th {
+    background-color: #003366;
+    color: white;
+    text-align: center;
+}

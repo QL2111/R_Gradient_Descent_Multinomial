@@ -1,4 +1,3 @@
-
 # nolint start
 # Générer la documentation
 # roxygen2::roxygenise()
@@ -119,7 +118,9 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param use_early_stopping Logical. Whether to use early stopping. Default is TRUE.
     #' @param patience Integer. Number of iterations to wait for improvement before stopping early. Default is 10.
     #' @return A new `LogisticRegressionMultinomial` object.
-    initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, use_early_stopping = TRUE) {
+    initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", 
+    optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, 
+    use_early_stopping = TRUE, regularization = "none") {
       self$learning_rate = learning_rate
       self$num_iterations = num_iterations
       self$loss_history = numeric(num_iterations)
@@ -130,6 +131,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       self$epsilon = epsilon
       self$patience <- patience
       self$use_early_stopping <- use_early_stopping
+
+      self$regularization <- regularization  # "none", "ridge", "lasso", "elasticnet"
 
 
       
@@ -426,6 +429,10 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       epsilon <- 1e-15  # Small value to prevent log(0)
       y_pred <- pmax(pmin(y_pred, 1 - epsilon), epsilon) 
       loss <- -sum(y_true * log(y_pred))  # Régularisez par 1/N ?
+
+      # Add penalty
+      reg_results <- self$apply_regularization(NULL, self$coefficients)
+      loss <- loss + reg_results$penalty
       return(loss)
 
     },
@@ -591,6 +598,77 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       
       # Return the selected features as a subset of the original data
       return(top_variables)
+    },
+    #' @description Applies regularization to the gradient and computes the penalty term for the loss function.
+    #' @param gradient A matrix of gradients with respect to the model coefficients.
+    #' @param coefficients A matrix of model coefficients, where the first row corresponds to the intercept.
+    #' @param p A numeric value (default 0.5) representing the mixing parameter for ElasticNet regularization.
+    #' @return A list containing:
+    #'   - `penalty`: The computed penalty term to be added to the loss function.
+    #'   - `regularized_gradient`: The gradient matrix adjusted for regularization.
+    apply_regularization = function(gradient, coefficients, p = 0.5) {
+      penalty <- 0 
+      regularized_gradient <- gradient 
+
+      coef_no_intercept <- coefficients[-1, ]
+      
+      if (self$regularization == "ridge") {
+        # Ridge : 1/2 * sum(beta^2)
+        penalty <- 0.5 * sum(coef_no_intercept^2)
+        regularized_gradient[-1, ] <- gradient[-1, ] + coef_no_intercept
+      } else if (self$regularization == "lasso") {
+        # Lasso : 1/2 * sum(|beta|)
+        penalty <- 0.5 * sum(abs(coef_no_intercept))
+        regularized_gradient[-1, ] <- gradient[-1, ] + sign(coef_no_intercept)
+      } else if (self$regularization == "elasticnet") {
+        # ElasticNet : (1-p)/2 * sum(beta^2) + p * sum(|beta|)
+        penalty <- 0.5 * (1 - p) * sum(coef_no_intercept^2) + 0.5 * p * sum(abs(coef_no_intercept))
+        regularized_gradient[-1, ] <- gradient[-1, ] + (1 - p) * coef_no_intercept + p * sign(coef_no_intercept)
+      }
+      
+      return(list(penalty = penalty, regularized_gradient = regularized_gradient))
+    },
+    
+    
+    #' @description Exports the trained model to a PMML (Predictive Model Markup Language) file.
+    #' @param file_path A string specifying the path where the PMML file will be saved.
+    #' @return Saves the PMML representation of the trained model to the specified file and returns a success message.
+    #' @details This function generates a PMML file for a multinomial logistic regression model, including the model's
+    #'   coefficients and metadata. It ensures that the model is trained before exporting and uses the PMML version 4.4 format.
+    #' @throws An error if the model is not trained (i.e., `self$coefficients` is `NULL`).
+    export_pmml = function(file_path) {
+      # Check if the model is trained
+      if (is.null(self$coefficients)) {
+        stop("Error: model must be trained before being exported.")
+      }
+      
+      # XML library
+      library(XML)
+      
+      # Root node for PMML
+      pmml <- newXMLNode("PMML", namespaceDefinitions = c("http://www.dmg.org/PMML-4_4"), attrs = c(version = "4.4"))
+      
+      # Add header
+      header <- newXMLNode("Header", parent = pmml)
+      newXMLNode("Application", attrs = c(name = "LogisticRegressionMultinomial", version = "1.0"), parent = header)
+      newXMLNode("Timestamp", Sys.time(), parent = header)
+      
+      # Add data dictionary
+      model <- newXMLNode("RegressionModel", attrs = c(functionName = "classification", algorithmName = "multinomial logistic regression"), parent = pmml)
+      newXMLNode("MiningSchema", newXMLNode("MiningField", attrs = c(name = "target", usageType = "target")), parent = model)
+      
+      # Add coefficients of the model
+      regression_table <- newXMLNode("RegressionTable", parent = model)
+      for (class_index in seq_len(ncol(self$coefficients))) {
+        for (feature_index in seq_len(nrow(self$coefficients))) {
+          coefficient <- self$coefficients[feature_index, class_index]
+          newXMLNode("NumericPredictor", attrs = c(name = paste0("Feature", feature_index), coefficient = coefficient), parent = regression_table)
+        }
+      }
+      
+      # Save PMML to file
+      saveXML(pmml, file = file_path)
+      message("Model exported successfully. ", file_path)
     }
    
   )

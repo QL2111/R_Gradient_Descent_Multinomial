@@ -1,3 +1,4 @@
+
 # https://www.kaggle.com/datasets/samuelcortinhas/credit-card-approval-clean-data Variable à predire: Industry
 # On test avec Approved car l'accuracy est très faible pour Industry -> Même avec approved, l'accuracy est faible (0.16).. Il y a un problème avec le modèle
 

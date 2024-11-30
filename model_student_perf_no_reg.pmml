@@ -1,0 +1,112 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_4" version="4.4">
+  <Header>
+    <Application name="LogisticRegressionMultinomial" version="1.0"/>
+    <Timestamp>1732921267.90921</Timestamp>
+  </Header>
+  <RegressionModel functionName="classification" algorithmName="multinomial logistic regression">
+    <MiningSchema>
+      <MiningField name="target" usageType="target"/>
+    </MiningSchema>
+    <RegressionTable>
+      <NumericPredictor name="Feature1" coefficient="0.787777038546444"/>
+      <NumericPredictor name="Feature2" coefficient.quantitative.Hours_Studied="-0.075243447240497"/>
+      <NumericPredictor name="Feature3" coefficient.quantitative.Attendance="-0.21762554587082"/>
+      <NumericPredictor name="Feature4" coefficient.quantitative.Sleep_Hours="-0.0375127965318644"/>
+      <NumericPredictor name="Feature5" coefficient.quantitative.Previous_Scores="-0.0573827761750054"/>
+      <NumericPredictor name="Feature6" coefficient.quantitative.Tutoring_Sessions="-0.0308420680012235"/>
+      <NumericPredictor name="Feature7" coefficient.quantitative.Physical_Activity="-0.0689891069213099"/>
+      <NumericPredictor name="Feature8" coefficient.quantitative.Exam_Score="0.259256253917717"/>
+      <NumericPredictor name="Feature9" coefficient.qualitative.Parental_InvolvementHigh="0.712559613933371"/>
+      <NumericPredictor name="Feature10" coefficient.qualitative.Parental_InvolvementLow="0.879377589097365"/>
+      <NumericPredictor name="Feature11" coefficient.qualitative.Parental_InvolvementMedium="0.777580774233974"/>
+      <NumericPredictor name="Feature12" coefficient.qualitative.Access_to_ResourcesLow="-7.60874751382994"/>
+      <NumericPredictor name="Feature13" coefficient.qualitative.Access_to_ResourcesMedium="-6.87415083874077"/>
+      <NumericPredictor name="Feature14" coefficient.qualitative.Extracurricular_ActivitiesYes="0.0419934238803699"/>
+      <NumericPredictor name="Feature15" coefficient.qualitative.Motivation_LevelLow="0.25975358947171"/>
+      <NumericPredictor name="Feature16" coefficient.qualitative.Motivation_LevelMedium="0.226696682008915"/>
+      <NumericPredictor name="Feature17" coefficient.qualitative.Internet_AccessYes="0.195578717525932"/>
+      <NumericPredictor name="Feature18" coefficient.qualitative.Family_IncomeLow="0.183375430316602"/>
+      <NumericPredictor name="Feature19" coefficient.qualitative.Family_IncomeMedium="0.135743660020559"/>
+      <NumericPredictor name="Feature20" coefficient.qualitative.Teacher_QualityHigh="0.576485133280761"/>
+      <NumericPredictor name="Feature21" coefficient.qualitative.Teacher_QualityLow="0.688600094106293"/>
+      <NumericPredictor name="Feature22" coefficient.qualitative.Teacher_QualityMedium="0.601322574996973"/>
+      <NumericPredictor name="Feature23" coefficient.qualitative.School_TypePublic="0.0516287072661727"/>
+      <NumericPredictor name="Feature24" coefficient.qualitative.Peer_InfluenceNeutral="0.0252681676654006"/>
+      <NumericPredictor name="Feature25" coefficient.qualitative.Peer_InfluencePositive="-0.00925781151505166"/>
+      <NumericPredictor name="Feature26" coefficient.qualitative.Learning_DisabilitiesYes="0.0690114242887284"/>
+      <NumericPredictor name="Feature27" coefficient.qualitative.Parental_Education_LevelCollege="0.636069901365333"/>
+      <NumericPredictor name="Feature28" coefficient.qualitative.Parental_Education_LevelHigh School="0.666889526903315"/>
+      <NumericPredictor name="Feature29" coefficient.qualitative.Parental_Education_LevelPostgraduate="0.571669697648431"/>
+      <NumericPredictor name="Feature30" coefficient.qualitative.Distance_from_HomeFar="0.721300100529719"/>
+      <NumericPredictor name="Feature31" coefficient.qualitative.Distance_from_HomeModerate="0.690675970540023"/>
+      <NumericPredictor name="Feature32" coefficient.qualitative.Distance_from_HomeNear="0.653234634137298"/>
+      <NumericPredictor name="Feature33" coefficient.qualitative.GenderMale="0.0427167497496696"/>
+      <NumericPredictor name="Feature1" coefficient="-0.539406813165067"/>
+      <NumericPredictor name="Feature2" coefficient.quantitative.Hours_Studied="0.152181263006923"/>
+      <NumericPredictor name="Feature3" coefficient.quantitative.Attendance="0.151340759357108"/>
+      <NumericPredictor name="Feature4" coefficient.quantitative.Sleep_Hours="-0.00759264199839102"/>
+      <NumericPredictor name="Feature5" coefficient.quantitative.Previous_Scores="-0.0163579636175455"/>
+      <NumericPredictor name="Feature6" coefficient.quantitative.Tutoring_Sessions="0.0706505060993559"/>
+      <NumericPredictor name="Feature7" coefficient.quantitative.Physical_Activity="-0.00360866343112341"/>
+      <NumericPredictor name="Feature8" coefficient.quantitative.Exam_Score="-0.270350193792121"/>
+      <NumericPredictor name="Feature9" coefficient.qualitative.Parental_InvolvementHigh="-0.439099307931602"/>
+      <NumericPredictor name="Feature10" coefficient.qualitative.Parental_InvolvementLow="-0.653714433790437"/>
+      <NumericPredictor name="Feature11" coefficient.qualitative.Parental_InvolvementMedium="-0.52757967795801"/>
+      <NumericPredictor name="Feature12" coefficient.qualitative.Access_to_ResourcesLow="5.46148891519641"/>
+      <NumericPredictor name="Feature13" coefficient.qualitative.Access_to_ResourcesMedium="-2.87251599996887"/>
+      <NumericPredictor name="Feature14" coefficient.qualitative.Extracurricular_ActivitiesYes="0.0399816575080024"/>
+      <NumericPredictor name="Feature15" coefficient.qualitative.Motivation_LevelLow="-0.268984132933827"/>
+      <NumericPredictor name="Feature16" coefficient.qualitative.Motivation_LevelMedium="-0.267458375190243"/>
+      <NumericPredictor name="Feature17" coefficient.qualitative.Internet_AccessYes="-0.0247867337963786"/>
+      <NumericPredictor name="Feature18" coefficient.qualitative.Family_IncomeLow="-0.13775870991843"/>
+      <NumericPredictor name="Feature19" coefficient.qualitative.Family_IncomeMedium="-0.113126266149208"/>
+      <NumericPredictor name="Feature20" coefficient.qualitative.Teacher_QualityHigh="-0.404213297395192"/>
+      <NumericPredictor name="Feature21" coefficient.qualitative.Teacher_QualityLow="-0.39439514764114"/>
+      <NumericPredictor name="Feature22" coefficient.qualitative.Teacher_QualityMedium="-0.440250281510307"/>
+      <NumericPredictor name="Feature23" coefficient.qualitative.School_TypePublic="-0.00740319455443948"/>
+      <NumericPredictor name="Feature24" coefficient.qualitative.Peer_InfluenceNeutral="-0.0181296471513668"/>
+      <NumericPredictor name="Feature25" coefficient.qualitative.Peer_InfluencePositive="0.0815870331063929"/>
+      <NumericPredictor name="Feature26" coefficient.qualitative.Learning_DisabilitiesYes="-7.09213524371329e-05"/>
+      <NumericPredictor name="Feature27" coefficient.qualitative.Parental_Education_LevelCollege="-0.409910235866542"/>
+      <NumericPredictor name="Feature28" coefficient.qualitative.Parental_Education_LevelHigh School="-0.395109542931196"/>
+      <NumericPredictor name="Feature29" coefficient.qualitative.Parental_Education_LevelPostgraduate="-0.301929949225012"/>
+      <NumericPredictor name="Feature30" coefficient.qualitative.Distance_from_HomeFar="-0.451842460512436"/>
+      <NumericPredictor name="Feature31" coefficient.qualitative.Distance_from_HomeModerate="-0.482063735208463"/>
+      <NumericPredictor name="Feature32" coefficient.qualitative.Distance_from_HomeNear="-0.453874877409983"/>
+      <NumericPredictor name="Feature33" coefficient.qualitative.GenderMale="0.0114762227975379"/>
+      <NumericPredictor name="Feature1" coefficient="-0.362521550379692"/>
+      <NumericPredictor name="Feature2" coefficient.quantitative.Hours_Studied="0.0135021244138796"/>
+      <NumericPredictor name="Feature3" coefficient.quantitative.Attendance="-0.0459877460932896"/>
+      <NumericPredictor name="Feature4" coefficient.quantitative.Sleep_Hours="-0.0314959027245678"/>
+      <NumericPredictor name="Feature5" coefficient.quantitative.Previous_Scores="-0.0222791384622074"/>
+      <NumericPredictor name="Feature6" coefficient.quantitative.Tutoring_Sessions="0.0379180495744381"/>
+      <NumericPredictor name="Feature7" coefficient.quantitative.Physical_Activity="0.0171879649456396"/>
+      <NumericPredictor name="Feature8" coefficient.quantitative.Exam_Score="0.0135732395185105"/>
+      <NumericPredictor name="Feature9" coefficient.qualitative.Parental_InvolvementHigh="-0.372470408849045"/>
+      <NumericPredictor name="Feature10" coefficient.qualitative.Parental_InvolvementLow="-0.353630103275363"/>
+      <NumericPredictor name="Feature11" coefficient.qualitative.Parental_InvolvementMedium="-0.359130897280479"/>
+      <NumericPredictor name="Feature12" coefficient.qualitative.Access_to_ResourcesLow="-2.99478864136926"/>
+      <NumericPredictor name="Feature13" coefficient.qualitative.Access_to_ResourcesMedium="5.71361970059343"/>
+      <NumericPredictor name="Feature14" coefficient.qualitative.Extracurricular_ActivitiesYes="-0.051655820448965"/>
+      <NumericPredictor name="Feature15" coefficient.qualitative.Motivation_LevelLow="-0.0542107586404942"/>
+      <NumericPredictor name="Feature16" coefficient.qualitative.Motivation_LevelMedium="-0.0480959107201098"/>
+      <NumericPredictor name="Feature17" coefficient.qualitative.Internet_AccessYes="-0.141662388206457"/>
+      <NumericPredictor name="Feature18" coefficient.qualitative.Family_IncomeLow="-0.0668113268066938"/>
+      <NumericPredictor name="Feature19" coefficient.qualitative.Family_IncomeMedium="-0.0519531655103905"/>
+      <NumericPredictor name="Feature20" coefficient.qualitative.Teacher_QualityHigh="-0.274255025066986"/>
+      <NumericPredictor name="Feature21" coefficient.qualitative.Teacher_QualityLow="-0.323235127229544"/>
+      <NumericPredictor name="Feature22" coefficient.qualitative.Teacher_QualityMedium="-0.25959443472872"/>
+      <NumericPredictor name="Feature23" coefficient.qualitative.School_TypePublic="-0.0358699867517674"/>
+      <NumericPredictor name="Feature24" coefficient.qualitative.Peer_InfluenceNeutral="-0.0114827860044369"/>
+      <NumericPredictor name="Feature25" coefficient.qualitative.Peer_InfluencePositive="-0.0348351778233188"/>
+      <NumericPredictor name="Feature26" coefficient.qualitative.Learning_DisabilitiesYes="-0.0402895273720163"/>
+      <NumericPredictor name="Feature27" coefficient.qualitative.Parental_Education_LevelCollege="-0.310439292808626"/>
+      <NumericPredictor name="Feature28" coefficient.qualitative.Parental_Education_LevelHigh School="-0.323961612729017"/>
+      <NumericPredictor name="Feature29" coefficient.qualitative.Parental_Education_LevelPostgraduate="-0.322358256697989"/>
+      <NumericPredictor name="Feature30" coefficient.qualitative.Distance_from_HomeFar="-0.332658617019795"/>
+      <NumericPredictor name="Feature31" coefficient.qualitative.Distance_from_HomeModerate="-0.306560979984586"/>
+      <NumericPredictor name="Feature32" coefficient.qualitative.Distance_from_HomeNear="-0.302482795024226"/>
+      <NumericPredictor name="Feature33" coefficient.qualitative.GenderMale="-0.0358686556226083"/>
+    </RegressionTable>
+  </RegressionModel>
+</PMML>
