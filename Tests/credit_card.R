@@ -22,8 +22,8 @@ data$Approved <- as.factor(data$Approved)
 # Diviser et préparer les données en ensembles d'entraînement et de test
 set.seed(42)  # Pour la reproductibilité
 
-data_prep <- DataPreparer$new(use_factor_analysis = TRUE)
-prepared_data <- data_prep$prepare_data(data, "Approved", 0.7, stratify = TRUE, remove_outliers = TRUE, outlier_seuil = 0.10)
+data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+prepared_data <- data_prep$prepare_data(data, "Approved", 0.7, stratify = TRUE, remove_outliers = FALSE, outlier_seuil = 0.10)
 
 # Accéder aux données préparées
 X_train <- prepared_data$X_train
@@ -32,10 +32,10 @@ y_train <- prepared_data$y_train
 y_test <- prepared_data$y_test
 
 # Afficher les proportions des classes dans les ensembles d'entraînement et de test
-cat("Proportions des classes dans l'ensemble d'entraînement :\n")
-print(table(y_train) / length(y_train))
-cat("Proportions des classes dans l'ensemble de test :\n")
-print(table(y_test) / length(y_test))
+# cat("Proportions des classes dans l'ensemble d'entraînement :\n")
+# print(table(y_train) / length(y_train))
+# cat("Proportions des classes dans l'ensemble de test :\n")
+# print(table(y_test) / length(y_test))
 
 # Convertir les données préparées en matrices
 X_train_matrix <- as.matrix(X_train)

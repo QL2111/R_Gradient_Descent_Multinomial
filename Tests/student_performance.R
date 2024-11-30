@@ -47,7 +47,10 @@ y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 300, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization = "elasticnet")
+# initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", 
+#     optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, 
+#     use_early_stopping = TRUE, regularization = "none", batch_size = 32) 
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 300, loss="logistique", optimizer="adam",batch_size=32, use_early_stopping=TRUE, regularization = FALSE)
 # lasso F1 = 0.99
 # ridge F1 = 0.99
 # elasticnet F1 = 0.99
