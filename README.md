@@ -37,12 +37,15 @@ On va tester en utilisant le jeu de données : ? Credit card ou student performa
 
 
 ## Architecture
-
+- Diagramme de classe ?
+- Schéma Pipeline de traitement
 
 ## Usage
 
 
 ## Multinomial Target Handling
+
+- Cross Entropy
 
 ## Authors and License
 This project was developed by AWA KARAMOKO, TAHINARISOA DANIELLA RAKOTONDRATSIMBA, QUENTIN LIM as part of the Master 2 SISE program (2024-2025) at Lyon 2 Université Lumière.
