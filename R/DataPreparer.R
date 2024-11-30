@@ -5,11 +5,10 @@
 # LIBRARY CARET createDataPartition, librarie factoextra et FactoMineR pour l'analyse factorielle
 # Préprocess la variable cible peut poser des problèmes ? Cas de variable cible encodée en numérique, il ne faudrait pas la standardiser
 
-
 #' @title Data Preparation Class
 #' @description The `DataPreparer` class provides methods to standardize quantitative data and encode qualitative data, allowing the option of factor analysis for mixed data.
 #' @details This class is part of a package designed to support data preparation tasks, particularly for models that need standardized quantitative features and encoded categorical features. The class can handle mixed data types and offers both one-hot encoding and an alternative factor analysis encoding for qualitative data.
-#' 
+#' @import R6
 #' 
 #' @export
 DataPreparer = R6::R6Class("DataPreparer", 

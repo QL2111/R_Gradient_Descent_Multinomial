@@ -78,11 +78,11 @@
 #' # documentation roxygen2::roxygenise().
 
 
-
 #' @title Logistic Regression Multinomial Class
 #' @description The `LogisticRegressionMultinomial` class implements multinomial logistic regression using gradient descent and the Adam optimizer.
 #' @details This class allows users to fit a multinomial logistic regression model, calculate class probabilities using softmax, and make predictions. It supports features like loss tracking, variable importance calculation, and a summary of model performance.
-#'
+#' @import R6
+#' 
 #' @field coefficients Matrix of model coefficients, initialized during the `fit` method.
 #' @field learning_rate Numeric. Learning rate for gradient descent optimization. Default is 0.01.
 #' @field num_iterations Integer. Number of iterations for gradient descent optimization. Default is 1000.

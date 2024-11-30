@@ -3,5 +3,6 @@
 export(DataPreparer)
 export(LogisticRegressionMultinomial)
 import(MLmetrics)
+import(R6)
 import(caret)
 import(pROC)
