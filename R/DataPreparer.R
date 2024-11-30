@@ -211,14 +211,13 @@ DataPreparer = R6::R6Class("DataPreparer",
       cat("Number of outliers replaced with NA:", num_outliers, "\n")
       
       return(data)
-    }
+    },
     
+    calculate_mode = function(x) {
+      uniq_x = unique(x)
+      uniq_x[which.max(tabulate(match(x, uniq_x)))]
+    }
   )
 )
-
-calculate_mode = function(x) {
-  uniq_x = unique(x)
-  uniq_x[which.max(tabulate(match(x, uniq_x)))]
-}
 
 # nolint end

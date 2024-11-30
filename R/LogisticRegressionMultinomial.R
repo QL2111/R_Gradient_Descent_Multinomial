@@ -4,7 +4,7 @@
 
 # 14/11 -> Le test sur credit_card_rmd a montré que le problème vient du modèle et non du préprocessing #### OK
 
-#' @TODO: 
+# ==============================================================TODO=====================================================
 #' Rshiny -> Utiliser une librairie, retaper
 #' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS, il faut tester avec un jeu de donnée plus dur, car sur student performance, le F1 est déjà à 1
 #' Test Package # Awa
@@ -21,13 +21,13 @@
 #' help # Awa
 #' SMOTE # Quentin
 #' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
-#' @PACKAGE IMPORTER
+#' IMPORTER
 #' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  
-#' @NEXT
+#' 
 #' 
 #' #' revoir SGD
 #' #' FIT REGRESSION LOGISTIQUE VOIR STRATEGIE Mini Batch(nb paramètre de l'algorithme) au lieu de Batch Gradient Descent(Tout l'ensemble de données) 
-#' @BONUS
+#' ==============================================================BONUS=====================================================
 #' Mettre en image Docker # Awa
 #' Améliorer SGD Optimizer # Awa
 #' Implémenter des objets pertinents que le model peut retourner
@@ -35,7 +35,7 @@
 #' #' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles,  #### EN COURS + de champs possibles ?
 
 #' 
-#' @DONE
+#' ==============================================================DONE=====================================================
 #' #' Ajouter var select # Awa #### à tester - Quentin #### OK -> pas de différences avec var importance ? 
 #' #' #' Incorporer AFDM dans data preparer # Quentin  ncp pour le nombre de dimensions à garder(variables explicatives cumulé>95%) # Quentin #### OK MAIS accuracy faible pour student performance
 #' #' Exportation en PMML # Daniella ### OK
@@ -639,7 +639,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @return Saves the PMML representation of the trained model to the specified file and returns a success message.
     #' @details This function generates a PMML file for a multinomial logistic regression model, including the model's
     #'   coefficients and metadata. It ensures that the model is trained before exporting and uses the PMML version 4.4 format.
-    #' @throws An error if the model is not trained (i.e., `self$coefficients` is `NULL`).
     export_pmml = function(file_path) {
       # Check if the model is trained
       if (is.null(self$coefficients)) {

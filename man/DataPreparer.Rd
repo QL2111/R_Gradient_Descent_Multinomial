@@ -22,8 +22,14 @@ This class is part of a package designed to support data preparation tasks, part
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-DataPreparer-new}{\code{DataPreparer$new()}}
-\item \href{#method-DataPreparer-standardize}{\code{DataPreparer$standardize()}}
+\item \href{#method-DataPreparer-split_data}{\code{DataPreparer$split_data()}}
 \item \href{#method-DataPreparer-prepare_data}{\code{DataPreparer$prepare_data()}}
+\item \href{#method-DataPreparer-handle_missing_data}{\code{DataPreparer$handle_missing_data()}}
+\item \href{#method-DataPreparer-standardize}{\code{DataPreparer$standardize()}}
+\item \href{#method-DataPreparer-process_data}{\code{DataPreparer$process_data()}}
+\item \href{#method-DataPreparer-detect_outliers}{\code{DataPreparer$detect_outliers()}}
+\item \href{#method-DataPreparer-remove_outliers}{\code{DataPreparer$remove_outliers()}}
+\item \href{#method-DataPreparer-calculate_mode}{\code{DataPreparer$calculate_mode()}}
 \item \href{#method-DataPreparer-clone}{\code{DataPreparer$clone()}}
 }
 }
@@ -48,6 +54,40 @@ A new `DataPreparer` object.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-split_data"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-split_data}{}}}
+\subsection{Method \code{split_data()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$split_data(data, target_col, split_ratio = 0.7, stratify = FALSE)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-prepare_data"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-prepare_data}{}}}
+\subsection{Method \code{prepare_data()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$prepare_data(
+  data,
+  target_col,
+  split_ratio = 0.7,
+  stratify = FALSE,
+  remove_outliers = FALSE,
+  outlier_seuil = 0.25
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-handle_missing_data"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-handle_missing_data}{}}}
+\subsection{Method \code{handle_missing_data()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$handle_missing_data(data)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DataPreparer-standardize"></a>}}
 \if{latex}{\out{\hypertarget{method-DataPreparer-standardize}{}}}
 \subsection{Method \code{standardize()}}{
@@ -68,12 +108,12 @@ A standardized numeric vector with mean 0 and standard deviation 1.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DataPreparer-prepare_data"></a>}}
-\if{latex}{\out{\hypertarget{method-DataPreparer-prepare_data}{}}}
-\subsection{Method \code{prepare_data()}}{
+\if{html}{\out{<a id="method-DataPreparer-process_data"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-process_data}{}}}
+\subsection{Method \code{process_data()}}{
 Prepares data by standardizing quantitative variables and encoding qualitative variables.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$prepare_data(data)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$process_data(data)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -94,6 +134,33 @@ The `prepare_data` method processes quantitative and qualitative data separately
 \subsection{Returns}{
 A prepared data frame with standardized quantitative variables and encoded qualitative variables.
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-detect_outliers"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-detect_outliers}{}}}
+\subsection{Method \code{detect_outliers()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$detect_outliers(x, seuil = 0.25)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-remove_outliers"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-remove_outliers}{}}}
+\subsection{Method \code{remove_outliers()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$remove_outliers(data, seuil = 0.25)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-calculate_mode"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-calculate_mode}{}}}
+\subsection{Method \code{calculate_mode()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$calculate_mode(x)}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DataPreparer-clone"></a>}}
