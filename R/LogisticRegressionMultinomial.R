@@ -572,23 +572,21 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #'   - `penalty`: The computed penalty term to be added to the loss function.
     #'   - `regularized_gradient`: The gradient matrix adjusted for regularization.
     apply_regularization = function(gradient, coefficients, p = 0.5) {
-      penalty <- 0  # Pénalité à ajouter à la fonction de perte
-      regularized_gradient <- gradient  # Gradients modifiés par la régularisation
-      
-      # Exclure l'intercept des coefficients (pas de régularisation sur l'intercept)
+      penalty <- 0 
+      regularized_gradient <- gradient 
+
       coef_no_intercept <- coefficients[-1, ]
       
-      # Calcul des pénalités et des gradients selon le type de régularisation
       if (self$regularization == "ridge") {
-        # Pénalité Ridge : 1/2 * sum(beta^2)
+        # Ridge : 1/2 * sum(beta^2)
         penalty <- 0.5 * sum(coef_no_intercept^2)
         regularized_gradient[-1, ] <- gradient[-1, ] + coef_no_intercept
       } else if (self$regularization == "lasso") {
-        # Pénalité Lasso : 1/2 * sum(|beta|)
+        # Lasso : 1/2 * sum(|beta|)
         penalty <- 0.5 * sum(abs(coef_no_intercept))
         regularized_gradient[-1, ] <- gradient[-1, ] + sign(coef_no_intercept)
       } else if (self$regularization == "elasticnet") {
-        # Pénalité ElasticNet : (1-p)/2 * sum(beta^2) + p * sum(|beta|)
+        # ElasticNet : (1-p)/2 * sum(beta^2) + p * sum(|beta|)
         penalty <- 0.5 * (1 - p) * sum(coef_no_intercept^2) + 0.5 * p * sum(abs(coef_no_intercept))
         regularized_gradient[-1, ] <- gradient[-1, ] + (1 - p) * coef_no_intercept + p * sign(coef_no_intercept)
       }
@@ -606,7 +604,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     export_pmml = function(file_path) {
       # Vérifier si le modèle est entraîné
       if (is.null(self$coefficients)) {
-        stop("Erreur : Le modèle doit être entraîné avant d'être exporté.")
+        stop("Error: model must be trained before being exported.")
       }
       
       # Générer une structure PMML basique
@@ -635,7 +633,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       
       # Sauvegarder le fichier PMML
       saveXML(pmml, file = file_path)
-      message("Modèle exporté avec succès au format PMML : ", file_path)
+      message("Model exported successfully. ", file_path)
     }
     
 
