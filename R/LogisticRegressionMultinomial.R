@@ -460,7 +460,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
 
       for (i in 1:self$num_iterations) {
-        linear_model <- X_train %*% self$coefficients # à voir pourquoi il s'apelle linear_model
+        linear_model <- X_train %*% self$coefficients 
         probabilities <- self$softmax(linear_model)
         one_hot_y <- self$one_hot_encode(y_train, unique_classes)
         loss <- self$loss_function(one_hot_y, probabilities)
