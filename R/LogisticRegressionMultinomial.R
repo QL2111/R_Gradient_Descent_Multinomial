@@ -7,7 +7,7 @@
 # ==============================================================TODO=====================================================
 #' Rshiny -> Utiliser une librairie, retaper
 #' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS, il faut tester avec un jeu de donnée plus dur, car sur student performance, le F1 est déjà à 1
-#' Test Package # Awa
+#' Test Package # Awa -> Quentin #### OK
 #' Faire mini batch # Quentin (Descente de gradient)
 #' Revoir différence entre var select et var importance # Awa 
 #' Changer les levels ? Répréesentation en 1,2,3 mais plus tard garder les labels? # Quentin # Casse les autres fonctions -> Laisser pour l'isntatn
@@ -18,7 +18,7 @@
 #' Améliroer le roc AUC dans shiny(éviter de calculer 2 fois) # Quentin
 #' #' Outliers ? #Quentin ### OK
 #' Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation + early stopping # Daniella
-#' help # Awa
+#' help # Awa -> Quentin #### OK
 #' SMOTE # Quentin
 #' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
 #' IMPORTER
