@@ -10,7 +10,7 @@ source("R/factor_analysis_mixed.R")
 source("R/LogisticRegressionMultinomial.R")
 
 # Charger le jeu de données après téléchargement de Kaggle
-data_path <- "Data/StudentPerformanceFactors.csv"  # Remplacez par le chemin de votre fichier
+data_path <- "data/StudentPerformanceFactors.csv"  # Remplacez par le chemin de votre fichier
 data <- read.csv(data_path)
 
 # S'assurer que la variable cible est un facteur
@@ -18,32 +18,42 @@ data$Access_to_Resources <- as.factor(data$Access_to_Resources)
 
 # Diviser les données en ensembles d'entraînement et de test
 set.seed(42)  # Pour la reproductibilité
-train_indices <- sample(1:nrow(data), size = 0.7 * nrow(data))  # 70% pour l'entraînement
-train_data <- data[train_indices, ]
-test_data <- data[-train_indices, ]
 
-# Séparer les caractéristiques et la variable cible
-X_train <- train_data[, -which(names(train_data) == "Access_to_Resources")]
-y_train <- train_data$Access_to_Resources
-
-X_test <- test_data[, -which(names(test_data) == "Access_to_Resources")]
-y_test <- test_data$Access_to_Resources
-
-# Préparer les prédicteurs sans inclure la variable cible
 data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-prepared_X_train <- data_prep$prepare_data(X_train)
-prepared_X_test <- data_prep$prepare_data(X_test)
+prepared_data <- data_prep$prepare_data(data, "Access_to_Resources", 0.7, stratify = FALSE)
+
+
+
+# Accéder aux données préparées
+X_train <- prepared_data$X_train
+X_test <- prepared_data$X_test
+y_train <- prepared_data$y_train
+y_test <- prepared_data$y_test
+
+# Check AFDM (avec one hot encoder 32 dimensions) # 27 dimensions sans one hot encoder, encore réduire ?
+# print(ncol(X_train))
+
+# Afficher les proportions des classes dans les ensembles d'entraînement et de test
+cat("Proportions des classes dans l'ensemble d'entraînement :\n")
+print(table(y_train) / length(y_train))
+cat("Proportions des classes dans l'ensemble de test :\n")
+print(table(y_test) / length(y_test))
 
 # Convertir les données préparées en matrices
-X_train_matrix <- as.matrix(prepared_X_train)
-X_test_matrix <- as.matrix(prepared_X_test)
+X_train_matrix <- as.matrix(X_train)
+X_test_matrix <- as.matrix(X_test)
 
 # Convertir la variable cible en valeurs numériques
 y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization = "lasso")
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 300, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization = "ridge")
+# lasso F1 = 0.99
+# ridge F1 = 0.99
+# elasticnet F1 = 0.99
+# FALSE = 0.99
+
 model$fit(X_train_matrix, y_train_numeric)
 
 # Prédire sur l'ensemble de test
@@ -57,8 +67,9 @@ predictions <- model$predict(X_test_matrix)
 # cat("Accuracy:", accuracy, "\n")
 model$summary()
 model$plot_loss()
+
 model$print(X_test_matrix, y_test_numeric)
-print("Variable Importance:")
-model$var_importance()
+# print("Variable Importance:")
+# model$var_importance()
 
 # nolint end
