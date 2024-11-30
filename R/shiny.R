@@ -96,8 +96,8 @@ server <- function(input, output, session) {
     
     # Préparer les données avec DataPreparer
     data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-    prepared_X_train <- data_prep$prepare_data(X_train)
-    prepared_X_test <- data_prep$prepare_data(X_test)
+    prepared_X_train <- data_prep$prepare_data(X_train, target_col = target_var, split_ratio = 0.7, stratify = TRUE)
+    prepared_X_test <- data_prep$prepare_data(X_test, target_col = target_var, split_ratio = 0.7, stratify = TRUE)
     X_train_matrix <- as.matrix(prepared_X_train)
     X_test_matrix <- as.matrix(prepared_X_test)
     
@@ -158,7 +158,7 @@ server <- function(input, output, session) {
     
     # Préparer les données avec DataPreparer
     data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-    prepared_X <- data_prep$prepare_data(X)
+    prepared_X <- data_prep$prepare_data(X, y, split_ratio = 0.7, stratify = TRUE)
     X_matrix <- as.matrix(prepared_X)
     
     probabilities <- model()$predict_proba(X_matrix)
@@ -183,7 +183,7 @@ server <- function(input, output, session) {
     
     # Préparer les données avec DataPreparer
     data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-    prepared_X <- data_prep$prepare_data(X)
+    prepared_X <- data_prep$prepare_data(X, target_col = target_var, split_ratio = 0.7, stratify = TRUE)
     X_matrix <- as.matrix(prepared_X)
     
     probabilities <- model()$predict_proba(X_matrix)

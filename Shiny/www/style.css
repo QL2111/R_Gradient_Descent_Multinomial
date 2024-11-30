@@ -1,50 +1,151 @@
-/* styles.css */
-
-/* Couleur de fond bleu foncé pour la barre de navigation */
-.navbar {
-    background-color: #003366;  /* Bleu foncé */
-}
-
-/* Couleur du texte en blanc pour les liens dans la navbar */
-.navbar-default .navbar-nav > li > a {
-    color: white;
-}
-
-/* Couleur du texte en blanc pour le titre de la navbar */
-.navbar-default .navbar-brand {
-    color: white;
-}
-
-/* Couleur de survol légèrement plus claire pour les liens dans la navbar */
-.navbar-default .navbar-nav > li > a:hover {
-    color: #DCE3E6;
-}
-
-/* Style global pour le texte dans les onglets */
-h2 {
-    color: #003366;
-    font-weight: bold;
-}
-
+/* Corps de l'application */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
+  color: #ffffff;
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
 }
 
-/* Style des tables de données */
-.table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 20px 0;
+/* Header */
+.main-header {
+  background-color: #1a237e !important;
+  color: #ffffff;
 }
 
-.table th, .table td {
-    border: 1px solid #ddd;
-    padding: 8px;
+.main-header .logo {
+  background-color: #1f2d7a !important;
+  color: #ffffff !important;
+  font-size: 14px;
 }
 
-.table th {
-    background-color: #003366;
-    color: white;
-    text-align: center;
+.main-header .navbar {
+  background-color: #1f2d7a !important; /* Couleur navbar */
+  color: #ffffff !important;
+}
+
+/* Sidebar */
+
+.main-sidebar {
+  background-color: #1f2d7a !important; /* Couleur navbar */
+  position: fixed;
+}
+
+.sidebar-menu > li > a {
+  color: #ecf0f1 !important; /* Texte blanc */
+}
+
+.sidebar-menu > li.active > a, 
+.sidebar-menu > li > a:hover {
+  background-color: #d3d3d3 !important;
+  color: #000000 !important;
+  font-weight: bold;
+}
+
+.sidebar-menu .treeview-menu > li > a {
+  color: #ecf0f1 !important;
+}
+
+.sidebar-menu .treeview-menu > li.active > a,
+.sidebar-menu .treeview-menu > li > a:hover {
+  background-color: #d3d3d3 !important;
+  color: #ffffff !important;
+}
+
+/* Boîtes */
+.box {
+  background-color: #d3d3d3 !important;
+  border: 1px solid #1f2d7a;
+  color: #ecf0f1;
+}
+
+.box-header {
+  background: #1f2d7a !important;
+  color: #ffffff !important;
+}
+
+.box-title {
+  font-weight: bold;
+}
+
+.box-body {
+  background-color: #d3d3d3; /* Bleu très foncé */
+  color: #000000;
+}
+
+/* Boutons */
+.btn {
+  background-color:#1a237e;
+  border-color:#d3d3d3;
+  color: #ffffff;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+.btn:hover {
+  background-color:  #d3d3d3 !important;
+  border-color: #1a237e !important;
+  color: #1a237e !important;
+}
+
+/* Tableaux */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  background-color: #d3d3d3;
+}
+
+th {
+  background-color: #1a237e;
+  color: #ffffff;
+  text-align: left;
+  padding: 8px;
+}
+
+td {
+  padding: 8px;
+  border: 1px solid #1a237e ;
+  color:#000000;
+}
+
+tr:nth-child(even) {
+  background-color: #1a237e;
+}
+
+/* Notifications */
+.shiny-notification {
+  background-color: #d3d3d3;
+  border-left: 5px solid #1a237e;
+  color: #ffffff;
+}
+
+/* Graphiques */
+.plot-output {
+  background-color: #ffffff;
+  border-radius: 5px;
+  padding: 10px;
+  color: #ffffff;
+}
+
+/* Animations */
+.animated {
+  animation-duration: 1.5s;
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fadeIn;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Barre de chargement */
+.progress-bar {
+  background-color: #009933 !important;
 }
