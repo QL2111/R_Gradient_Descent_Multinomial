@@ -123,7 +123,7 @@ DataPreparer = R6::R6Class("DataPreparer",
       
       # Mode for qualitative variables
       for (col in names(data)[qualitative_vars]) {
-        mode_value = calculate_mode(data[[col]])
+        mode_value = self$calculate_mode(data[[col]])
         
         # Ajouter la valeur de la mode aux niveaux du facteur si elle n'existe pas déjà
         if (!mode_value %in% levels(data[[col]])) {
