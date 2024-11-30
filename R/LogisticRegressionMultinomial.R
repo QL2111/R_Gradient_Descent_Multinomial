@@ -107,6 +107,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
 
     use_early_stopping = NULL, # Use early stopping
     patience = NULL, # Early stopping patience
+
+    regularization = NULL, # Regularization to use
     
     # class_labels = NULL,  # Store the class labels to rename them later
     
@@ -599,6 +601,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       # Return the selected features as a subset of the original data
       return(top_variables)
     },
+
     #' @description Applies regularization to the gradient and computes the penalty term for the loss function.
     #' @param gradient A matrix of gradients with respect to the model coefficients.
     #' @param coefficients A matrix of model coefficients, where the first row corresponds to the intercept.
