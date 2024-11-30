@@ -10,11 +10,11 @@ source("R/factor_analysis_mixed.R")
 source("R/LogisticRegressionMultinomial.R")
 
 # Charger le jeu de données après téléchargement de Kaggle
-data_path <- "Data/StudentPerformanceFactors.csv"  # Remplacez par le chemin de votre fichier
+data_path <- "Data/user_behavior_dataset.csv"  # Remplacez par le chemin de votre fichier
 data <- read.csv(data_path)
 
 # S'assurer que la variable cible est un facteur
-data$Access_to_Resources <- as.factor(data$Access_to_Resources)
+data$User.Behavior.Class <- as.factor(data$User.Behavior.Class)
 
 # Diviser les données en ensembles d'entraînement et de test
 set.seed(42)  # Pour la reproductibilité
@@ -23,11 +23,11 @@ train_data <- data[train_indices, ]
 test_data <- data[-train_indices, ]
 
 # Séparer les caractéristiques et la variable cible
-X_train <- train_data[, -which(names(train_data) == "Access_to_Resources")]
-y_train <- train_data$Access_to_Resources
+X_train <- train_data[, -which(names(train_data) == "User.Behavior.Class")]
+y_train <- train_data$User.Behavior.Class
 
-X_test <- test_data[, -which(names(test_data) == "Access_to_Resources")]
-y_test <- test_data$Access_to_Resources
+X_test <- test_data[, -which(names(test_data) == "User.Behavior.Class")]
+y_test <- test_data$User.Behavior.Class
 
 # Préparer les prédicteurs sans inclure la variable cible
 data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
@@ -60,5 +60,23 @@ model$plot_loss()
 model$print(X_test_matrix, y_test_numeric)
 print("Variable Importance:")
 model$var_importance()
+
+#=========================test avec nnet======================
+# Initialiser le modèle de régression logistique multinomial
+multinom_model <- nnet::multinom(y_train_numeric ~ ., data = as.data.frame(X_train_matrix))
+
+# Faire des prédictions sur l'ensemble de test
+multinom_predictions <- predict(multinom_model, newdata = as.data.frame(X_test_matrix))
+
+# Vérifier les prédictions
+print("Multinomial Model Predictions:")
+print(multinom_predictions)
+
+# Calculer et afficher l'accuracy
+multinom_accuracy <- sum(multinom_predictions == y_test_numeric) / length(y_test_numeric)
+cat("Multinomial Model Accuracy nnet:", multinom_accuracy, "\n")
+#======================test export pmml ==============================
+#model$export_pmml("logistic_model.pmml")
+
 
 # nolint end

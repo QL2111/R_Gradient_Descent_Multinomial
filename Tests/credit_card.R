@@ -13,40 +13,40 @@ source("R/LogisticRegressionMultinomial.R")
 print("Credit Card Approval Prediction Example")
 
 # Charger le jeu de données depuis un fichier local après téléchargement de Kaggle
-data_path <- "data/credit_card.csv"  # Remplacez par le chemin de votre fichier
+data_path <- "Data/credit_card.csv"  # Remplacez par le chemin de votre fichier
 data <- read.csv(data_path)
 
 # S'assurer que la variable cible est un facteur
 data$Approved <- as.factor(data$Approved)
 
-# Diviser et préparer les données en ensembles d'entraînement et de test
+# Diviser les données en ensembles d'entraînement et de test
 set.seed(42)  # Pour la reproductibilité
+train_indices <- sample(1:nrow(data), size = 0.7 * nrow(data))  # 70% pour l'entraînement
+train_data <- data[train_indices, ]
+test_data <- data[-train_indices, ]
 
-data_prep <- DataPreparer$new(use_factor_analysis = TRUE)
-prepared_data <- data_prep$prepare_data(data, "Approved", 0.7, stratify = TRUE)
+# Séparer les caractéristiques et la variable cible
+X_train <- train_data[, -which(names(train_data) == "Approved")]
+y_train <- train_data$Approved
 
-# Accéder aux données préparées
-X_train <- prepared_data$X_train
-X_test <- prepared_data$X_test
-y_train <- prepared_data$y_train
-y_test <- prepared_data$y_test
+X_test <- test_data[, -which(names(test_data) == "Approved")]
+y_test <- test_data$Approved
 
-# Afficher les proportions des classes dans les ensembles d'entraînement et de test
-cat("Proportions des classes dans l'ensemble d'entraînement :\n")
-print(table(y_train) / length(y_train))
-cat("Proportions des classes dans l'ensemble de test :\n")
-print(table(y_test) / length(y_test))
+# Préparer les prédicteurs sans inclure la variable cible
+data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+prepared_X_train <- data_prep$prepare_data(X_train)
+prepared_X_test <- data_prep$prepare_data(X_test)
 
 # Convertir les données préparées en matrices
-X_train_matrix <- as.matrix(X_train)
-X_test_matrix <- as.matrix(X_test)
+X_train_matrix <- as.matrix(prepared_X_train)
+X_test_matrix <- as.matrix(prepared_X_test)
 
 # Convertir la variable cible en valeurs numériques
 y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="adam", use_early_stopping=TRUE)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization = "lasso")
 model$fit(X_train_matrix, y_train_numeric)
 
 # Prédire sur l'ensemble de test
@@ -56,12 +56,11 @@ predictions <- model$predict(X_test_matrix)
 # print(predictions)
 
 # Calculer et afficher l'accuracy
-# accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
-# cat("Accuracy:", accuracy, "\n")
+accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
+cat("Accuracy:", accuracy, "\n")
 
 # Matrice de confusion pour évaluer les performances
 model$summary()
-model$plot_loss()
 
 model$print(X_test_matrix, y_test_numeric)
 
@@ -70,4 +69,7 @@ model$print(X_test_matrix, y_test_numeric)
 # Importance des variables
 # model$var_importance()
 
-# nolint end
+#Exporter en pmml
+#model$export_pmml("logistic_model.pmml")
+
+# nolint end
