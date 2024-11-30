@@ -6,7 +6,6 @@ library(R6)
 
 # Charger les fichiers de fonctions
 source("R/DataPreparer.R")
-source("R/factor_analysis_mixed.R")
 source("R/LogisticRegressionMultinomial.R")
 
 # Charger le jeu de données après téléchargement de Kaggle

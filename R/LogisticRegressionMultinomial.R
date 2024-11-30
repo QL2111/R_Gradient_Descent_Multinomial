@@ -90,6 +90,12 @@
 #' @field beta1 Numeric. Momentum parameter for Adam optimizer. Default is 0.9.
 #' @field beta2 Numeric. Second momentum parameter for Adam optimizer. Default is 0.999.
 #' @field epsilon Numeric. Small constant for numerical stability in Adam optimizer. Default is 1e-8.
+#' @field use_early_stopping Logical. Whether to use early stopping based on validation loss. Default is TRUE.
+#' @field patience Integer. Number of iterations to wait for improvement before stopping early. Default is 20.
+#' @field regularization Character. Regularization method to use. Options are "none", "ridge", "lasso", "elasticnet". Default is "none".
+#' @field loss_function Function. Loss function to use for optimization. Options are "quadratique", "logistique". Default is "logistique".
+#' @field loss_name Character. Name of the loss function used.
+#' @field optimizer Character. Optimizer to use for gradient descent. Options are "adam", "sgd". Default is "adam".
 #'
 #' @export
 LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
@@ -120,6 +126,10 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param optimizer Character. Specifies the optimizer to use. Options are "adam", "sgd". Default is "adam".
     #' @param use_early_stopping Logical. Whether to use early stopping. Default is TRUE.
     #' @param patience Integer. Number of iterations to wait for improvement before stopping early. Default is 10.
+    #' @param beta1 Numeric. Momentum parameter for Adam optimizer. Default is 0.9.
+    #' @param beta2 Numeric. Second momentum parameter for Adam optimizer. Default is 0.999.
+    #' @param epsilon Numeric. Small constant for numerical stability in Adam optimizer. Default is 1e-8.
+    #' @param regularization Character. Regularization method to use. Options are "none", "ridge", "lasso", "elasticnet". Default is "none".
     #' @return A new `LogisticRegressionMultinomial` object.
     initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", 
     optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, 
@@ -284,6 +294,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @description This function calculates and plots the ROC AUC for the model predictions.
     #' @param X_test A data frame or matrix containing the test features.
     #' @param y_test A vector containing the true labels for the test data.
+    #' @param probabilities A matrix of class probabilities for the test data. If not provided, the model will predict probabilities using the test features.
+    #' @details The function calculates the ROC AUC for each class using the One vs All strategy. It then plots the ROC curve for each class and displays the AUC value for each class.
     #' @return A plot showing the ROC curve and the AUC value.
     #' @examples
     #' \dontrun{
@@ -462,13 +474,24 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     # }
 
 
-    #' @description Adam optimizer for updating coefficients.
-    #' @param X Matrix of predictors with intercept term added.
-    #' @param y Factor vector of response variable.
+    #' @description This function performs optimization using the Adam algorithm to update the coefficients of a multinomial logistic regression model.
+    #' @param X_train Matrix of training data.
+    #' @param y_train Vector of training labels.
+    #' @param X_val Matrix of validation data for early stopping.
+    #' @param y_val Vector of validation labels for early stopping.
     #' @param unique_classes Vector of unique class labels.
-    #' @param num_samples Number of samples.
-    #' @param num_features Number of features.
-    #' @param num_classes Number of classes.
+    #' @param num_samples Number of samples in the training data.
+    #' @param num_features Number of features in the training data.
+    #' @param num_classes Number of unique classes.
+    #' @param best_loss Best validation loss observed so far.
+    #' @param patience_counter Counter for the number of iterations without improvement in validation loss.
+    #' @return Updated coefficients after performing optimization.
+    #' @details This function uses the Adam optimization algorithm to update the coefficients of a multinomial logistic regression model. It also includes an option for early stopping based on validation loss.
+    #' @examples
+    #' \dontrun{
+    #' # Assuming `model` is an instance of the logistic regression class
+    #' model$adam_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+    #' }
     adam_optimizer = function(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter) {
       m <- matrix(0, nrow = num_features + 1, ncol = num_classes)
       v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
@@ -515,13 +538,29 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       }
     },
 
-    #' @description SGD optimizer for updating coefficients.
-    #' @param X Matrix of predictors with intercept term added.
-    #' @param y Factor vector of response variable.
-    #' @param unique_classes Vector of unique class labels.
-    #' @param num_samples Number of samples.
-    #' @param num_features Number of features.
-    #' @param num_classes Number of classes.
+    #' Stochastic Gradient Descent (SGD) Optimizer
+    #'
+    #' This function performs stochastic gradient descent optimization for a multinomial logistic regression model.
+    #'
+    #' @param X_train A matrix of training data features.
+    #' @param y_train A vector of training data labels.
+    #' @param X_val A matrix of validation data features.
+    #' @param y_val A vector of validation data labels.
+    #' @param unique_classes A vector of unique class labels.
+    #' @param num_samples An integer representing the number of training samples.
+    #' @param num_features An integer representing the number of features in the training data.
+    #' @param num_classes An integer representing the number of unique classes.
+    #' @param best_loss A numeric value representing the best validation loss observed.
+    #' @param patience_counter An integer representing the current count of iterations without improvement in validation loss.
+    #' @details
+    #' The function iteratively updates the model's coefficients using the gradient of the loss function with respect to the coefficients.
+    #' It also supports early stopping based on validation loss to prevent overfitting.
+    #'
+    #' @examples
+    #' \dontrun{
+    #' sgd_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+    #' }
+    #'
     sgd_optimizer = function(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter) {
       for (i in 1:self$num_iterations) {
         linear_model <- X_train %*% self$coefficients

@@ -82,6 +82,8 @@ The `fit` method initializes model coefficients and applies gradient descent to 
 
 The function checks if the loss history is available and non-empty. If the loss history is empty, it stops and prompts the user to run the 'fit' method first. Otherwise, it plots the loss history.
 
+The function calculates the ROC AUC for each class using the One vs All strategy. It then plots the ROC curve for each class and displays the AUC value for each class.
+
 This function prints out the hyperparameters of the model, including the optimizer, learning rate, number of iterations, and loss function. If the optimizer is "adam", it also prints out the Adam-specific parameters: Beta1, Beta2, and Epsilon.
 
 
@@ -92,6 +94,13 @@ The function performs the following steps:
   \item Computes and prints the classification report using the `caret` package.
   \item Computes and prints the weighted F1 score using the `MLmetrics` package.
 }
+
+
+This function uses the Adam optimization algorithm to update the coefficients of a multinomial logistic regression model. It also includes an option for early stopping based on validation loss.
+
+
+The function iteratively updates the model's coefficients using the gradient of the loss function with respect to the coefficients.
+It also supports early stopping based on validation loss to prevent overfitting.
 
 
 This function generates a PMML file for a multinomial logistic regression model, including the model's
@@ -157,6 +166,28 @@ y_pred <- c(0.9, 0.1, 0.8, 0.2)
 mse_loss(y_true, y_pred)
 
 ## ------------------------------------------------
+## Method `LogisticRegressionMultinomial$adam_optimizer`
+## ------------------------------------------------
+
+\dontrun{
+# Assuming `model` is an instance of the logistic regression class
+model$adam_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+}
+Stochastic Gradient Descent (SGD) Optimizer
+
+This function performs stochastic gradient descent optimization for a multinomial logistic regression model.
+
+
+## ------------------------------------------------
+## Method `LogisticRegressionMultinomial$sgd_optimizer`
+## ------------------------------------------------
+
+\dontrun{
+sgd_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+}
+
+
+## ------------------------------------------------
 ## Method `LogisticRegressionMultinomial$select_variables`
 ## ------------------------------------------------
 
@@ -181,6 +212,18 @@ mse_loss(y_true, y_pred)
 \item{\code{beta2}}{Numeric. Second momentum parameter for Adam optimizer. Default is 0.999.}
 
 \item{\code{epsilon}}{Numeric. Small constant for numerical stability in Adam optimizer. Default is 1e-8.}
+
+\item{\code{use_early_stopping}}{Logical. Whether to use early stopping based on validation loss. Default is TRUE.}
+
+\item{\code{patience}}{Integer. Number of iterations to wait for improvement before stopping early. Default is 20.}
+
+\item{\code{regularization}}{Character. Regularization method to use. Options are "none", "ridge", "lasso", "elasticnet". Default is "none".}
+
+\item{\code{loss_function}}{Function. Loss function to use for optimization. Options are "quadratique", "logistique". Default is "logistique".}
+
+\item{\code{loss_name}}{Character. Name of the loss function used.}
+
+\item{\code{optimizer}}{Character. Optimizer to use for gradient descent. Options are "adam", "sgd". Default is "adam".}
 }
 \if{html}{\out{</div>}}
 }
@@ -239,9 +282,17 @@ Initializes a new instance of the `LogisticRegressionMultinomial` class.
 
 \item{\code{optimizer}}{Character. Specifies the optimizer to use. Options are "adam", "sgd". Default is "adam".}
 
+\item{\code{beta1}}{Numeric. Momentum parameter for Adam optimizer. Default is 0.9.}
+
+\item{\code{beta2}}{Numeric. Second momentum parameter for Adam optimizer. Default is 0.999.}
+
+\item{\code{epsilon}}{Numeric. Small constant for numerical stability in Adam optimizer. Default is 1e-8.}
+
 \item{\code{patience}}{Integer. Number of iterations to wait for improvement before stopping early. Default is 10.}
 
 \item{\code{use_early_stopping}}{Logical. Whether to use early stopping. Default is TRUE.}
+
+\item{\code{regularization}}{Character. Regularization method to use. Options are "none", "ridge", "lasso", "elasticnet". Default is "none".}
 }
 \if{html}{\out{</div>}}
 }
@@ -396,6 +447,8 @@ This function calculates and plots the ROC AUC for the model predictions.
 \item{\code{X_test}}{A data frame or matrix containing the test features.}
 
 \item{\code{y_test}}{A vector containing the true labels for the test data.}
+
+\item{\code{probabilities}}{A matrix of class probabilities for the test data. If not provided, the model will predict probabilities using the test features.}
 }
 \if{html}{\out{</div>}}
 }
@@ -539,7 +592,7 @@ mse_loss(y_true, y_pred)
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-adam_optimizer"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-adam_optimizer}{}}}
 \subsection{Method \code{adam_optimizer()}}{
-Adam optimizer for updating coefficients.
+This function performs optimization using the Adam algorithm to update the coefficients of a multinomial logistic regression model.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$adam_optimizer(
   X_train,
@@ -558,26 +611,51 @@ Adam optimizer for updating coefficients.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
+\item{\code{X_train}}{Matrix of training data.}
+
+\item{\code{y_train}}{Vector of training labels.}
+
+\item{\code{X_val}}{Matrix of validation data for early stopping.}
+
+\item{\code{y_val}}{Vector of validation labels for early stopping.}
+
 \item{\code{unique_classes}}{Vector of unique class labels.}
 
-\item{\code{num_samples}}{Number of samples.}
+\item{\code{num_samples}}{Number of samples in the training data.}
 
-\item{\code{num_features}}{Number of features.}
+\item{\code{num_features}}{Number of features in the training data.}
 
-\item{\code{num_classes}}{Number of classes.}
+\item{\code{num_classes}}{Number of unique classes.}
 
-\item{\code{X}}{Matrix of predictors with intercept term added.}
+\item{\code{best_loss}}{Best validation loss observed so far.}
 
-\item{\code{y}}{Factor vector of response variable.}
+\item{\code{patience_counter}}{Counter for the number of iterations without improvement in validation loss.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Returns}{
+Updated coefficients after performing optimization.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\dontrun{
+# Assuming `model` is an instance of the logistic regression class
+model$adam_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+}
+Stochastic Gradient Descent (SGD) Optimizer
+
+This function performs stochastic gradient descent optimization for a multinomial logistic regression model.
+
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-sgd_optimizer"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-sgd_optimizer}{}}}
 \subsection{Method \code{sgd_optimizer()}}{
-SGD optimizer for updating coefficients.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$sgd_optimizer(
   X_train,
@@ -596,20 +674,39 @@ SGD optimizer for updating coefficients.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{unique_classes}}{Vector of unique class labels.}
+\item{\code{X_train}}{A matrix of training data features.}
 
-\item{\code{num_samples}}{Number of samples.}
+\item{\code{y_train}}{A vector of training data labels.}
 
-\item{\code{num_features}}{Number of features.}
+\item{\code{X_val}}{A matrix of validation data features.}
 
-\item{\code{num_classes}}{Number of classes.}
+\item{\code{y_val}}{A vector of validation data labels.}
 
-\item{\code{X}}{Matrix of predictors with intercept term added.}
+\item{\code{unique_classes}}{A vector of unique class labels.}
 
-\item{\code{y}}{Factor vector of response variable.}
+\item{\code{num_samples}}{An integer representing the number of training samples.}
+
+\item{\code{num_features}}{An integer representing the number of features in the training data.}
+
+\item{\code{num_classes}}{An integer representing the number of unique classes.}
+
+\item{\code{best_loss}}{A numeric value representing the best validation loss observed.}
+
+\item{\code{patience_counter}}{An integer representing the current count of iterations without improvement in validation loss.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\dontrun{
+sgd_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+}
+
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-predict_proba"></a>}}

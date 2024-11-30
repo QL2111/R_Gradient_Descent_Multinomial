@@ -20,14 +20,14 @@ This class is part of a package designed to support data preparation tasks, part
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-DataPreparer-new}{\code{DataPreparer$new()}}
+\item \href{#method-DataPreparer-calculate_mode}{\code{DataPreparer$calculate_mode()}}
+\item \href{#method-DataPreparer-standardize}{\code{DataPreparer$standardize()}}
 \item \href{#method-DataPreparer-split_data}{\code{DataPreparer$split_data()}}
 \item \href{#method-DataPreparer-prepare_data}{\code{DataPreparer$prepare_data()}}
 \item \href{#method-DataPreparer-handle_missing_data}{\code{DataPreparer$handle_missing_data()}}
-\item \href{#method-DataPreparer-standardize}{\code{DataPreparer$standardize()}}
 \item \href{#method-DataPreparer-process_data}{\code{DataPreparer$process_data()}}
 \item \href{#method-DataPreparer-detect_outliers}{\code{DataPreparer$detect_outliers()}}
 \item \href{#method-DataPreparer-remove_outliers}{\code{DataPreparer$remove_outliers()}}
-\item \href{#method-DataPreparer-calculate_mode}{\code{DataPreparer$calculate_mode()}}
 \item \href{#method-DataPreparer-clone}{\code{DataPreparer$clone()}}
 }
 }
@@ -49,6 +49,46 @@ Initializes a new instance of the `DataPreparer` class.
 }
 \subsection{Returns}{
 A new `DataPreparer` object.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-calculate_mode"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-calculate_mode}{}}}
+\subsection{Method \code{calculate_mode()}}{
+Calculates the mode of a vector.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$calculate_mode(x)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{x}}{A vector.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The mode of the vector.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-standardize"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-standardize}{}}}
+\subsection{Method \code{standardize()}}{
+Standardizes a quantitative variable.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$standardize(data)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{Numeric vector representing a quantitative variable to be standardized.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A standardized numeric vector with mean 0 and standard deviation 1.
 }
 }
 \if{html}{\out{<hr>}}
@@ -135,26 +175,6 @@ A data frame with missing values imputed.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DataPreparer-standardize"></a>}}
-\if{latex}{\out{\hypertarget{method-DataPreparer-standardize}{}}}
-\subsection{Method \code{standardize()}}{
-Standardizes a quantitative variable.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$standardize(data)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{data}}{Numeric vector representing a quantitative variable to be standardized.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A standardized numeric vector with mean 0 and standard deviation 1.
-}
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DataPreparer-process_data"></a>}}
 \if{latex}{\out{\hypertarget{method-DataPreparer-process_data}{}}}
 \subsection{Method \code{process_data()}}{
@@ -216,26 +236,6 @@ Removes outliers from the data by replacing them with NA.
 }
 \subsection{Returns}{
 A data frame with outliers replaced by NA.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DataPreparer-calculate_mode"></a>}}
-\if{latex}{\out{\hypertarget{method-DataPreparer-calculate_mode}{}}}
-\subsection{Method \code{calculate_mode()}}{
-Calculates the mode of a vector.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$calculate_mode(x)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{x}}{A vector.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The mode of the vector.
 }
 }
 \if{html}{\out{<hr>}}

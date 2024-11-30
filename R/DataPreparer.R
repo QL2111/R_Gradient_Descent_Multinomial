@@ -26,7 +26,24 @@ DataPreparer = R6::R6Class("DataPreparer",
       }
       self$use_factor_analysis <- use_factor_analysis
     },
+    
+    #' @description Calculates the mode of a vector.
+    #' @param x A vector.
+    #' @return The mode of the vector.
+    #' @export
+    calculate_mode = function(x) {
+      uniq_x = unique(x)
+      uniq_x[which.max(tabulate(match(x, uniq_x)))]
+    },
 
+
+    #' @description Standardizes a quantitative variable.
+    #' @param data Numeric vector representing a quantitative variable to be standardized.
+    #' @return A standardized numeric vector with mean 0 and standard deviation 1.
+    standardize = function(data) {
+      return((data - mean(data, na.rm = TRUE)) / sd(data, na.rm = TRUE))
+    },
+    
     #' @description Splits the data into training and test sets.
     #' @param data A data frame.
     #' @param target_col Character. The name of the target column.
@@ -120,13 +137,6 @@ DataPreparer = R6::R6Class("DataPreparer",
       return(data)
     },
 
-    
-    #' @description Standardizes a quantitative variable.
-    #' @param data Numeric vector representing a quantitative variable to be standardized.
-    #' @return A standardized numeric vector with mean 0 and standard deviation 1.
-    standardize = function(data) {
-      return((data - mean(data, na.rm = TRUE)) / sd(data, na.rm = TRUE))
-    },
     
     #' @description Processes the data by standardizing numeric variables and applying factor analysis if specified.
     #' @param data A data frame.
@@ -236,17 +246,11 @@ DataPreparer = R6::R6Class("DataPreparer",
       cat("Number of outliers replaced with NA:", num_outliers, "\n")
       
       return(data)
-    },
-
-    #' @description Calculates the mode of a vector.
-    #' @param x A vector.
-    #' @return The mode of the vector.
-    #' @export
-    calculate_mode = function(x) {
-      uniq_x = unique(x)
-      uniq_x[which.max(tabulate(match(x, uniq_x)))]
     }
+
+    
   )
 )
+
 
 # nolint end

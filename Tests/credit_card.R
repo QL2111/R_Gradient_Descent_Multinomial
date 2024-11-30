@@ -61,9 +61,10 @@ predictions <- model$predict(X_test_matrix)
 
 # Matrice de confusion pour évaluer les performances
 model$summary()
-model$plot_loss()
 
 model$print(X_test_matrix, y_test_numeric)
+model$plot_loss()
+
 
 # print(confusion_matrix)
 
