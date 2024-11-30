@@ -419,7 +419,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       y_pred <- pmax(pmin(y_pred, 1 - epsilon), epsilon) 
       loss <- -sum(y_true * log(y_pred))  # Régularisez par 1/N ?
 
-      # Ajouter la pénalité
+      # Add penalty
       reg_results <- self$apply_regularization(NULL, self$coefficients)
       loss <- loss + reg_results$penalty
       return(loss)
@@ -471,11 +471,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
         error <- probabilities - one_hot_y
         gradient <- t(X_train) %*% error / num_samples
 
-        # # Appliquer la régularisation
-        # reg_results <- self$apply_regularization(gradient, self$coefficients)
-        # penalty <- reg_results$penalty
-        # regularized_gradient <- reg_results$regularized_gradient
-
         m <- self$beta1 * m + (1 - self$beta1) * gradient
         v <- self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
         
@@ -524,11 +519,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
 
         error <- probabilities - one_hot_y
         gradient <- t(X_train) %*% error / num_samples
-
-        # # Appliquer la régularisation
-        # reg_results <- self$apply_regularization(gradient, self$coefficients)
-        # penalty <- reg_results$penalty
-        # regularized_gradient <- reg_results$regularized_gradient
 
         self$coefficients <- self$coefficients - self$learning_rate * gradient
 
