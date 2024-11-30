@@ -6,24 +6,21 @@
 
 #' @TODO: 
 #' Rshiny -> Utiliser une librairie, retaper
-#' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS
+#' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS, il faut tester avec un jeu de donnée plus dur, car sur student performance, le F1 est déjà à 1
 #' Test Package # Awa
 #' Faire mini batch # Quentin (Descente de gradient)
-#' #' Incorporer AFDM dans data preparer # Quentin  ncp pour le nombre de dimensions à garder(variables explicatives cumulé>95%) # Quentin #### OK MAIS accuracy faible pour student performance
-#' Ajouter var select # Awa #### à tester - Quentin #### OK -> pas de différences avec var importance ? 
 #' Revoir différence entre var select et var importance # Awa 
 #' Changer les levels ? Répréesentation en 1,2,3 mais plus tard garder les labels? # Quentin # Casse les autres fonctions -> Laisser pour l'isntatn
-#' Mettre un Imputer sur le datapreparer, Missing values aussi à mettre dans le datapreparer et outliers avant le scaler # Quentin
+#' Mettre un Imputer sur le datapreparer, Missing values aussi à mettre dans le datapreparer et outliers avant le scaler # Quentin ### OK
 #' ReadMe Github 
 #' Video explicative(tuto) (si package ne marche pas)
 #' legends (nom des classes) auc PLOT # Quentin (à voir si on garde ? Rshiny)
 #' Améliroer le roc AUC dans shiny(éviter de calculer 2 fois) # Quentin
-#' Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation # Daniella
+#' #' Outliers ? #Quentin ### OK
+#' Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation + early stopping # Daniella
 #' help # Awa
-#' Ajouter régularisation + export PMML dans LogisticRegressionMultinomial dans LogistRegression.R # Quentin
 #' SMOTE # Quentin
 #' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
-#' Outliers ? #Quentin
 #' @PACKAGE IMPORTER
 #' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  
 #' @NEXT
@@ -33,18 +30,22 @@
 #' @BONUS
 #' Mettre en image Docker # Awa
 #' Améliorer SGD Optimizer # Awa
+#' Implémenter des objets pertinents que le model peut retourner
 #' #' Paralleliser les calculs
-#' #' Analyse Factorielle (Plus de dimension) # Quentin ### OK
 #' #' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles,  #### EN COURS + de champs possibles ?
 
 #' 
 #' @DONE
+#' #' Ajouter var select # Awa #### à tester - Quentin #### OK -> pas de différences avec var importance ? 
+#' #' #' Incorporer AFDM dans data preparer # Quentin  ncp pour le nombre de dimensions à garder(variables explicatives cumulé>95%) # Quentin #### OK MAIS accuracy faible pour student performance
 #' #' Exportation en PMML # Daniella ### OK
+#' #' #' Analyse Factorielle (Plus de dimension) # Quentin ### OK
+#' #' Ajouter régularisation + export PMML dans LogisticRegressionMultinomial dans LogistRegression.R # Quentin #### OK
 #' #' #' # Implémenter analyse factorielle dans le datapreparer + tester avec studentperformance # Quentin   #### OK
 #' #' Device model mauvais test -> essayer avec une autre variable cible(User Behavior classification pour voir si l'accuracy monte) # Awa #### OK
 #' #' Tester Analyse factorielle multiclass tester avec student_performancce + Iris + JEU DE DONNEES avec beaucoup de col # Awa Iris + StudentPerformance # OK
 #' #' intégrer le train/test split dans le datapreparer  + stratify # Quentin ### OK
-#' #' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Daniella
+#' #' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Quentin #### OK
 #' #' AUC ? -> print + shiny # Quentin ####ok
 #' #' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.) # Awa(fit) #### LaTeX SGD pas efficace ?
 #' Tester var_importance et comparer avec sklearn # Quentin         #### OK
@@ -64,7 +65,7 @@
 #' Faire le summary, affichier les hyperparamètres #### OK 
 #' IMPLEMENTER IN EARLY STOPPING avec la fonction de loss Implémenter un validation set ? Plus DataPreparer ? # Quentin #### OK
 #' Ajouter une condition pour l'early stopping, peu de données, pas bien de faire un validation set # Quentin #### OK
-#' #' Tester avec StudentPerformance # Daniella Quentin OK #### A REVOIR
+#' #' Tester avec StudentPerformance # Daniella Quentin OK #### 
 
 
 
@@ -168,9 +169,9 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
         # Split data into training and validation sets
         set.seed(123)  # For reproducibility
         validation_indices <- sample(1:num_samples, size = floor(validation_split * num_samples))
-        X_val <- X[validation_indices, ]
+        X_val <- X[validation_indices, , drop = FALSE]
         y_val <- y[validation_indices]
-        X_train <- X[-validation_indices, ]
+        X_train <- X[-validation_indices, , drop = FALSE]
         y_train <- y[-validation_indices]
       } else {
         X_train <- X

@@ -8,12 +8,11 @@ library(R6)
 
 # Charger les fichiers de fonctions
 source("R/DataPreparer.R")
-source("R/factor_analysis_mixed.R")
 source("R/LogisticRegressionMultinomial.R")
 
 print("Credit Card Approval Prediction Example")
 
-# Charger le jeu de données depuis un fichier local après téléchargement de Kaggle
+# Charger le jeu de données 
 data_path <- "data/credit_card.csv"  # Remplacez par le chemin de votre fichier
 data <- read.csv(data_path)
 
@@ -23,8 +22,8 @@ data$Approved <- as.factor(data$Approved)
 # Diviser et préparer les données en ensembles d'entraînement et de test
 set.seed(42)  # Pour la reproductibilité
 
-data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-prepared_data <- data_prep$prepare_data(data, "Approved", 0.7, stratify = TRUE)
+data_prep <- DataPreparer$new(use_factor_analysis = TRUE)
+prepared_data <- data_prep$prepare_data(data, "Approved", 0.7, stratify = TRUE, remove_outliers = TRUE, outlier_seuil = 0.10)
 
 # Accéder aux données préparées
 X_train <- prepared_data$X_train
@@ -47,7 +46,7 @@ y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 100, loss="logistique", optimizer="adam", use_early_stopping=TRUE)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 100, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization=FALSE)
 model$fit(X_train_matrix, y_train_numeric)
 
 # Prédire sur l'ensemble de test
