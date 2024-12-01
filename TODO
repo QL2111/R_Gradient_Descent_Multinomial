@@ -1,0 +1,76 @@
+# nolint start
+# roxygen2::roxygenise()
+
+# ==============================================================TODO=====================================================
+#' Rshiny -> Utiliser une librairie, retaper
+#' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS, il faut tester avec un jeu de donnée plus dur, car sur student performance, le F1 est déjà à 1
+
+#' Faire mini batch # Quentin (Descente de gradient)
+#' Sortie graphique var importances(barplot) # Awa
+#' Pseudo code # Awa
+#' ReadMe Github  # Quentin
+#' Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation + early stopping # Daniella
+#' SMOTE # Quentin
+#' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
+#' Documentation
+#' Peut-être ne pas utiliser caret() + MLmetrics + pROC + 
+#' shiny librairie shinydashboard + shinymaterial + Metrics
+#' LaTeX # Awa
+#' 
+#' 
+#' #' revoir SGD
+#' #' FIT REGRESSION LOGISTIQUE VOIR STRATEGIE Mini Batch(nb paramètre de l'algorithme) au lieu de Batch Gradient Descent(Tout l'ensemble de données) 
+#' ==============================================================BONUS=====================================================
+#' Améliorer SGD Optimizer # Awa #### OK
+#' Implémenter des objets pertinents que le model peut retourner
+#' #' Paralleliser les calculs
+#' #' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles,  #### EN COURS + de champs possibles ?
+
+#' 
+#' ==============================================================DONE=====================================================
+#' #' Test Package # Awa -> Quentin #### OK
+#' #' #' Outliers ? #Quentin ### OK
+#' #' help # Awa -> Quentin #### OK
+#' #' Mettre en image Docker # Awa #### OK
+#'Mettre un Imputer sur le datapreparer, Missing values aussi à mettre dans le datapreparer et outliers avant le scaler # Quentin ### OK
+#' #' Ajouter var select # Awa #### à tester - Quentin #### OK -> pas de différences avec var importance ? 
+#' #' Incorporer AFDM dans data preparer # Quentin  ncp pour le nombre de dimensions à garder(variables explicatives cumulé>95%) # Quentin #### OK MAIS accuracy faible pour student performance
+#' #' Exportation en PMML # Daniella ### OK
+#' #' Analyse Factorielle (Plus de dimension) # Quentin ### OK
+#' #' Ajouter régularisation + export PMML dans LogisticRegressionMultinomial dans LogistRegression.R # Quentin #### OK
+#' #' Implémenter analyse factorielle dans le datapreparer + tester avec studentperformance # Quentin   #### OK
+#' #' Device model mauvais test -> essayer avec une autre variable cible(User Behavior classification pour voir si l'accuracy monte) # Awa #### OK
+#' #' Tester Analyse factorielle multiclass tester avec student_performancce + Iris + JEU DE DONNEES avec beaucoup de col # Awa Iris + StudentPerformance # OK
+#' #' intégrer le train/test split dans le datapreparer  + stratify # Quentin ### OK
+#' #' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Quentin #### OK
+#' #' AUC ? -> print + shiny # Quentin ####ok
+#' #' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.) # Awa(fit) #### LaTeX SGD pas efficace ?
+#' Tester var_importance et comparer avec sklearn # Quentin         #### OK
+#' #' predict_proba() pour avoir les probabilités des classes + ajouter au summary # Quentin #### OK  (fait avant Daniella pour les AUC) 
+#' Factoriser code factor_analysis dans DataPreparer # Quentin ### OK
+#' #' Tester avec DeviceModel # Awa  #### OK
+#' #' Revoir le var importance(à traiter et écrire dans le rapport) # Awa #### Tester avec Iris et nnet  #### OK
+#' #' Implement the LogisticRegressionMultinomial class with Adam optimizer # Quentin #### OK
+#' #' comparer non seulement avec nnet mais sklearn (rapport) # Quentin  #### OK
+#' #' R shiny choisir la variable cible/explicatives # Daniella #### OK
+#' Pouvoir choisir plusieurs fonction de perte (logistique, quadratique, etc.) # Quentin # A tester(deviance) https://eric.univ-lyon2.fr/ricco/cours/slides/logistic_regression_ml.pdf
+#' On va essayer d'améliorer le modèle en utilisant un Adam optimizer  # Quentin #### OK
+#' Latex formules # Quentin -> Overleaf + plan(table des matières)      #### OK
+#' Sortie graphique, fonction de loss en fonction des itérations               #### OK
+#' Completer le summary avec ma fonction de loss # Quentin #### OK
+#'  nombre d'optimisation, learning rate, beta1, beta2, epsilon  (Adam), # Awa #### OK
+#' Faire le summary, affichier les hyperparamètres #### OK 
+#' IMPLEMENTER IN EARLY STOPPING avec la fonction de loss Implémenter un validation set ? Plus DataPreparer ? # Quentin #### OK
+#' Ajouter une condition pour l'early stopping, peu de données, pas bien de faire un validation set # Quentin #### OK
+#' #' Tester avec StudentPerformance # Daniella Quentin OK #### 
+
+
+
+#' #' Exportation sous forme de package R # Quentin  
+#' #### OK devtools::build() 
+#' Pour l'installer
+#' install.packages("mon_package_0.1.0.tar.gz", repos = NULL, type = "source") 
+#' installer avec github
+#' devtools::install_github("Lien du repo")
+#' # documentation roxygen2::roxygenise().
+#' # nolint end

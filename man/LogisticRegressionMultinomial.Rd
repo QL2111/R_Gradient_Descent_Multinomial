@@ -2,7 +2,7 @@
 % Please edit documentation in R/LogisticRegressionMultinomial.R
 \name{LogisticRegressionMultinomial}
 \alias{LogisticRegressionMultinomial}
-\title{Logistic Regression Multinomial Class}
+\title{Logistic Regression Multinomial R6 Class}
 \usage{
 LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, use_early_stopping = TRUE, regularization = "none", batch_size = 32)
 }
@@ -10,159 +10,7 @@ LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 1000, l
 The `LogisticRegressionMultinomial` class implements multinomial logistic regression using gradient descent and the Adam optimizer.
 }
 \details{
-Rshiny -> Utiliser une librairie, retaper
-Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS, il faut tester avec un jeu de donnée plus dur, car sur student performance, le F1 est déjà à 1
-Faire mini batch # Quentin (Descente de gradient)
-Sortie graphique var importances(barplot) # Awa
-Pseudo code # Awa
-ReadMe Github  # Quentin
-Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation + early stopping # Daniella
-SMOTE # Quentin
-Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
-Documentation
-Peut-être ne pas utiliser caret() + MLmetrics + pROC + 
-shiny librairie shinydashboard + shinymaterial + Metrics
-LaTeX # Awa
-
-
-#' revoir SGD
-#' FIT REGRESSION LOGISTIQUE VOIR STRATEGIE Mini Batch(nb paramètre de l'algorithme) au lieu de Batch Gradient Descent(Tout l'ensemble de données) 
-==============================================================BONUS=====================================================
-Améliorer SGD Optimizer # Awa #### OK
-Implémenter des objets pertinents que le model peut retourner
-#' Paralleliser les calculs
-#' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles,  #### EN COURS + de champs possibles ?
-
-==============================================================DONE=====================================================
-#' Test Package # Awa -> Quentin #### OK
-#' #' Outliers ? #Quentin ### OK
-#' help # Awa -> Quentin #### OK
-#' Mettre en image Docker # Awa #### OK
-Mettre un Imputer sur le datapreparer, Missing values aussi à mettre dans le datapreparer et outliers avant le scaler # Quentin ### OK
-#' Ajouter var select # Awa #### à tester - Quentin #### OK -> pas de différences avec var importance ? 
-#' Incorporer AFDM dans data preparer # Quentin  ncp pour le nombre de dimensions à garder(variables explicatives cumulé>95%) # Quentin #### OK MAIS accuracy faible pour student performance
-#' Exportation en PMML # Daniella ### OK
-#' Analyse Factorielle (Plus de dimension) # Quentin ### OK
-#' Ajouter régularisation + export PMML dans LogisticRegressionMultinomial dans LogistRegression.R # Quentin #### OK
-#' Implémenter analyse factorielle dans le datapreparer + tester avec studentperformance # Quentin   #### OK
-#' Device model mauvais test -> essayer avec une autre variable cible(User Behavior classification pour voir si l'accuracy monte) # Awa #### OK
-#' Tester Analyse factorielle multiclass tester avec student_performancce + Iris + JEU DE DONNEES avec beaucoup de col # Awa Iris + StudentPerformance # OK
-#' intégrer le train/test split dans le datapreparer  + stratify # Quentin ### OK
-#' INCORPORER D'autres métriques(print) (F1, precision, recall, ROC AUC, etc.  probabilité d'appartenance aux classes) # Quentin #### OK
-#' AUC ? -> print + shiny # Quentin ####ok
-#' Pouvoir choisir plusieurs optimiseurs (Adam, SGD, etc.) # Awa(fit) #### LaTeX SGD pas efficace ?
-Tester var_importance et comparer avec sklearn # Quentin         #### OK
-#' predict_proba() pour avoir les probabilités des classes + ajouter au summary # Quentin #### OK  (fait avant Daniella pour les AUC) 
-Factoriser code factor_analysis dans DataPreparer # Quentin ### OK
-#' Tester avec DeviceModel # Awa  #### OK
-#' Revoir le var importance(à traiter et écrire dans le rapport) # Awa #### Tester avec Iris et nnet  #### OK
-#' Implement the LogisticRegressionMultinomial class with Adam optimizer # Quentin #### OK
-#' comparer non seulement avec nnet mais sklearn (rapport) # Quentin  #### OK
-#' R shiny choisir la variable cible/explicatives # Daniella #### OK
-Pouvoir choisir plusieurs fonction de perte (logistique, quadratique, etc.) # Quentin # A tester(deviance) https://eric.univ-lyon2.fr/ricco/cours/slides/logistic_regression_ml.pdf
-On va essayer d'améliorer le modèle en utilisant un Adam optimizer  # Quentin #### OK
-Latex formules # Quentin -> Overleaf + plan(table des matières)      #### OK
-Sortie graphique, fonction de loss en fonction des itérations               #### OK
-Completer le summary avec ma fonction de loss # Quentin #### OK
- nombre d'optimisation, learning rate, beta1, beta2, epsilon  (Adam), # Awa #### OK
-Faire le summary, affichier les hyperparamètres #### OK 
-IMPLEMENTER IN EARLY STOPPING avec la fonction de loss Implémenter un validation set ? Plus DataPreparer ? # Quentin #### OK
-Ajouter une condition pour l'early stopping, peu de données, pas bien de faire un validation set # Quentin #### OK
-#' Tester avec StudentPerformance # Daniella Quentin OK #### 
-#' Exportation sous forme de package R # Quentin  
-#### OK devtools::build() 
-Pour l'installer
-install.packages("mon_package_0.1.0.tar.gz", repos = NULL, type = "source") 
-installer avec github
-devtools::install_github("Lien du repo")
-# documentation roxygen2::roxygenise().
-
-
 This R6 class supports multiple loss functions, optimizers, regularization methods, and early stopping based on validation loss.
-
-
- The Adam optimizer updates the coefficients using the following formulas:
-\deqn{m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t}
-\deqn{v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2}
-\deqn{\hat{m}_t = \frac{m_t}{1 - \beta_1^t}}
-\deqn{\hat{v}_t = \frac{v_t}{1 - \beta_2^t}}
-\deqn{\theta_t = \theta_{t-1} - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}}
-where \eqn{m_t} and \eqn{v_t} are the first and second moment estimates, \eqn{\beta_1} and \eqn{\beta_2} are the exponential decay rates, \eqn{\alpha} is the learning rate, and \eqn{\epsilon} is a small constant for numerical stability.
-
-
-The sgd optimizer first converts the target labels `y_batch` into a one-hot encoded matrix. It then computes the linear model as:
-\deqn{Z = X_{batch} \cdot \beta}
-where \eqn{X_{batch}} is the input feature matrix and \eqn{\beta} are the coefficients.
-
-The probabilities are computed using the softmax function:
-\deqn{P = \text{softmax}(Z)}
-
-The error is calculated as the difference between the predicted probabilities and the one-hot encoded target labels:
-\deqn{\text{error} = P - \text{one\_hot\_y}}
-
-The gradient of the loss with respect to the coefficients is computed as:
-\deqn{\nabla L = \frac{1}{N} X_{batch}^T \cdot \text{error}}
-where \eqn{N} is the number of samples in the batch.
-
-Finally, the coefficients are updated using the gradient and the learning rate:
-\deqn{\beta = \beta - \text{learning\_rate} \cdot \nabla L}
-
-
-
-The softmax function is defined as:
-\deqn{softmax(z_i) = \frac{e^{z_i}}{\sum_{j} e^{z_j}}}
-where \(z_i\) is the \(i\)-th element of the input matrix \(z\).
-
-
-The plot_loss function checks if the loss history is available and non-empty. If the loss history is empty, it stops and prompts the user to run the 'fit' method first. Otherwise, it plots the loss history.
-
-
-The summary function prints out the hyperparameters of the model, including the optimizer, learning rate, number of iterations, and loss function. If the optimizer is "adam", it also prints out the Adam-specific parameters: Beta1, Beta2, and Epsilon.
-It will also print out the regularization method, batch size, and early stopping parameters.
-
-
-The print function performs the following steps:
-\itemize{
-  \item Predicts the labels for the test data using the model.
-  \item Computes and prints the confusion matrix.
-  \item Computes and prints the classification report using the `caret` package.
-  \item Computes and prints the weighted F1 score using the `MLmetrics` package.
-}
-
-
-
-The log loss is computed using the formula:
-\deqn{J = - \sum_{i=1}^{n} \sum_{k=1}^{K} y_{ik} \times \log(\pi_{ik})}
-where:
-\itemize{
-  \item \( y_{ik} \) is the true label for observation \( i \) and class \( k \) (0 or 1),
-  \item \( \pi_{ik} \) is the predicted probability for observation \( i \) and class \( k \).
-}
-A small value (\code{epsilon = 1e-15}) is used to avoid the computation of \code{log(0)}.
-
-If regularization is enabled, the penalty is added to the loss:
-\deqn{\text{loss} = \text{log loss} + \text{regularization penalty}}
-
-
-
-The select variables function calculates the importance of each feature based on the absolute value of the coefficients. It sums the absolute coefficients for each feature and selects the top 'num_variables' features based on their importance scores.
-
-
-The ElasticNet regularization combines L1 and L2 penalties. The penalty term is computed as:
-\deqn{penalty = \frac{\lambda}{2} \left( (1 - p) \sum_{j=1}^{n} \beta_j^2 + p \sum_{j=1}^{n} |\beta_j| \right)}
-where \(\lambda\) is the regularization parameter, \(p\) is the mixing parameter, \(\beta_j\) are the model coefficients, and \(n\) is the number of coefficients.
-
-For Ridge regularization, the penalty term is computed as:
-\deqn{penalty = \frac{1}{2} \sum_{j=1}^{n} \beta_j^2}
-where \(\beta_j\) are the model coefficients.
-
-For Lasso regularization, the penalty term is computed as:
-\deqn{penalty = \frac{1}{2} \sum_{j=1}^{n} |\beta_j|}
-where \(\beta_j\) are the model coefficients.
-
-
-The export_pml function generates a PMML file for a multinomial logistic regression model, including the model's
-  coefficients and metadata. It ensures that the model is trained before exporting and uses the PMML version 4.4 format.
 }
 \examples{
 
@@ -446,6 +294,16 @@ This function performs a single update of the coefficients using the Adam optimi
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+The Adam optimizer updates the coefficients using the following formulas:
+\deqn{m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t}
+\deqn{v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2}
+\deqn{\hat{m}_t = \frac{m_t}{1 - \beta_1^t}}
+\deqn{\hat{v}_t = \frac{v_t}{1 - \beta_2^t}}
+\deqn{\theta_t = \theta_{t-1} - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}}
+where \eqn{m_t} and \eqn{v_t} are the first and second moment estimates, \eqn{\beta_1} and \eqn{\beta_2} are the exponential decay rates, \eqn{\alpha} is the learning rate, and \eqn{\epsilon} is a small constant for numerical stability.
+}
+
 \subsection{Returns}{
 A list containing the updated coefficients, first moment estimates (m), second moment estimates (v), and the loss value.
 }
@@ -477,6 +335,25 @@ This function performs a single step of Stochastic Gradient Descent (SGD) optimi
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+The sgd optimizer first converts the target labels `y_batch` into a one-hot encoded matrix. It then computes the linear model as:
+\deqn{Z = X_{batch} \cdot \beta}
+where \eqn{X_{batch}} is the input feature matrix and \eqn{\beta} are the coefficients.
+
+The probabilities are computed using the softmax function:
+\deqn{P = \text{softmax}(Z)}
+
+The error is calculated as the difference between the predicted probabilities and the one-hot encoded target labels:
+\deqn{\text{error} = P - \text{one\_hot\_y}}
+
+The gradient of the loss with respect to the coefficients is computed as:
+\deqn{\nabla L = \frac{1}{N} X_{batch}^T \cdot \text{error}}
+where \eqn{N} is the number of samples in the batch.
+
+Finally, the coefficients are updated using the gradient and the learning rate:
+\deqn{\beta = \beta - \text{learning\_rate} \cdot \nabla L}
+}
+
 \subsection{Returns}{
 A matrix of updated coefficients after performing one step of SGD.
 }
@@ -530,6 +407,12 @@ Computes the softmax of the input matrix. The softmax function is used to conver
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+The softmax function is defined as:
+\deqn{softmax(z_i) = \frac{e^{z_i}}{\sum_{j} e^{z_j}}}
+where \(z_i\) is the \(i\)-th element of the input matrix \(z\).
+}
+
 \subsection{Returns}{
 A matrix of softmax probabilities for each class.
 }
@@ -606,6 +489,10 @@ This function plots the loss history to visualize the convergence of the loss fu
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$plot_loss()}\if{html}{\out{</div>}}
 }
 
+\subsection{Details}{
+The plot_loss function checks if the loss history is available and non-empty. If the loss history is empty, it stops and prompts the user to run the 'fit' method first. Otherwise, it plots the loss history.
+}
+
 \subsection{Returns}{
 A plot showing the convergence of the loss function over iterations.
 }
@@ -663,6 +550,11 @@ Displays the hyperparameters of the trained model.
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$summary()}\if{html}{\out{</div>}}
 }
 
+\subsection{Details}{
+The summary function prints out the hyperparameters of the model, including the optimizer, learning rate, number of iterations, and loss function. If the optimizer is "adam", it also prints out the Adam-specific parameters: Beta1, Beta2, and Epsilon.
+It will also print out the regularization method, batch size, and early stopping parameters.
+}
+
 \subsection{Returns}{
 None. This function is used for its side effect of printing the model's hyperparameters.
 }
@@ -695,6 +587,16 @@ This function prints the results of the logistic regression multinomial model on
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+The print function performs the following steps:
+\itemize{
+  \item Predicts the labels for the test data using the model.
+  \item Computes and prints the confusion matrix.
+  \item Computes and prints the classification report using the `caret` package.
+  \item Computes and prints the weighted F1 score using the `MLmetrics` package.
+}
+}
+
 \subsection{Returns}{
 This function does not return a value. It prints the confusion matrix, classification report, and F1 score.
 }
@@ -733,6 +635,20 @@ Values must be between 0 and 1.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+The log loss is computed using the formula:
+\deqn{J = - \sum_{i=1}^{n} \sum_{k=1}^{K} y_{ik} \times \log(\pi_{ik})}
+where:
+\itemize{
+  \item \( y_{ik} \) is the true label for observation \( i \) and class \( k \) (0 or 1),
+  \item \( \pi_{ik} \) is the predicted probability for observation \( i \) and class \( k \).
+}
+A small value (\code{epsilon = 1e-15}) is used to avoid the computation of \code{log(0)}.
+
+If regularization is enabled, the penalty is added to the loss:
+\deqn{\text{loss} = \text{log loss} + \text{regularization penalty}}
+}
+
 \subsection{Returns}{
 The computed log loss value with an added regularization penalty, if applicable.
 }
@@ -818,6 +734,10 @@ Displays the selected variables based on their importance scores.
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+The select variables function calculates the importance of each feature based on the absolute value of the coefficients. It sums the absolute coefficients for each feature and selects the top 'num_variables' features based on their importance scores.
+}
+
 \subsection{Returns}{
 None. This function is used for its side effect of printing the selected variables.
 }
@@ -856,6 +776,20 @@ Applies regularization to the gradient and computes the penalty term for the los
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+The ElasticNet regularization combines L1 and L2 penalties. The penalty term is computed as:
+\deqn{penalty = \frac{\lambda}{2} \left( (1 - p) \sum_{j=1}^{n} \beta_j^2 + p \sum_{j=1}^{n} |\beta_j| \right)}
+where \(\lambda\) is the regularization parameter, \(p\) is the mixing parameter, \(\beta_j\) are the model coefficients, and \(n\) is the number of coefficients.
+
+For Ridge regularization, the penalty term is computed as:
+\deqn{penalty = \frac{1}{2} \sum_{j=1}^{n} \beta_j^2}
+where \(\beta_j\) are the model coefficients.
+
+For Lasso regularization, the penalty term is computed as:
+\deqn{penalty = \frac{1}{2} \sum_{j=1}^{n} |\beta_j|}
+where \(\beta_j\) are the model coefficients.
+}
+
 \subsection{Returns}{
 A list containing:
   - `penalty`: The computed penalty term to be added to the loss function.
@@ -878,6 +812,11 @@ Exports the trained model to a PMML (Predictive Model Markup Language) file.
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+The export_pml function generates a PMML file for a multinomial logistic regression model, including the model's
+  coefficients and metadata. It ensures that the model is trained before exporting and uses the PMML version 4.4 format.
+}
+
 \subsection{Returns}{
 Saves the PMML representation of the trained model to the specified file and returns a success message.
 }
