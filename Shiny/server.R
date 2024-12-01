@@ -132,10 +132,7 @@ server <- function(input, output, session) {
     
     probabilites <- model()$predict_proba(X_test_matrix)
     print(probabilites)
-    
-    # Calculer et afficher l'accuracy
-    # accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
-    # results$accuracy <- accuracy
+  
     
     # Afficher le résumé du modèle
     output$summary_output <- renderPrint({
@@ -163,7 +160,7 @@ server <- function(input, output, session) {
     # Afficher les métriques dans metrics_output
     output$metrics_output <- renderPrint({
       cat(metrics_text)
-    })
+
     
     # Afficher la courbe de perte
     output$loss_plot <- renderPlot({
