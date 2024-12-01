@@ -743,7 +743,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' \dontrun{
     #' model$export_pmml("logistic_regression_multinomial.pmml")
     #' }
-    #' @import XML
     #' @export
     export_pmml = function(file_path) {
       # Check if the model is trained
