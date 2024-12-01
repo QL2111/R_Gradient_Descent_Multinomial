@@ -218,6 +218,8 @@ model$plot_loss()
 model$select_variables(5)
 
 ```
+<h2 id="Rshiny App">✔️ Rshiny App</h2>
+
 
 <h2 id="output">📊 Example Output</h2>
 
