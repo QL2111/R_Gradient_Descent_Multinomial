@@ -7,7 +7,7 @@ library(nnet)
 
 # Charger le jeu de données depuis un fichier local après téléchargement de Kaggle
 
-setwd("D:/M2 SISE/Programmation R/Projet R/R_Gradient_Descent_Multinomial/R") # Remplacez par le chemin correct
+setwd("D:/M2 SISE/Programmation R/Projet R/R_Gradient_Descent_Multinomial/data") # Remplacez par le chemin correct
 data <- read.csv(file = "user_behavior_dataset.csv")
 data
 ```
@@ -24,44 +24,32 @@ set.seed(42)  # Pour la reproductibilité
 
 
 ```{r}
-train_indices <- sample(1:nrow(data), size = 0.7 * nrow(data))  # 70% pour l'entraînement
-train_data <- data[train_indices, ]
-test_data <- data[-train_indices, ]
-
-# Séparer les caractéristiques et la variable cible
-X_train <- train_data[, -which(names(train_data) == "User.Behavior.Class")]
-y_train <- train_data$User.Behavior.Class
-
-X_test <- test_data[, -which(names(test_data) == "User.Behavior.Class")]
-y_test <- test_data$User.Behavior.Class
-```
+data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+prepared_data <- data_prep$prepare_data(data, "User.Behavior.Class", 0.7, stratify = TRUE)
 
 
-```{r}
-# Afficher les dimensions des ensembles d'entraînement et de test avant le traitement
-dim(X_train)
-dim(X_test)
-# Préparer les prédicteurs sans inclure la variable cible
-data_prep <- DataPreparer$new(use_factor_analysis = FALSE)  # standardisation + one hot encoding
-prepared_X_train <- data_prep$prepare_data(X_train)
-# Préparer les mêmes transformation aux données de test
-prepared_X_test <- data_prep$prepare_data(X_test)
+# Accéder aux données préparées
+X_train <- prepared_data$X_train
+X_test <- prepared_data$X_test
+y_train <- prepared_data$y_train
+y_test <- prepared_data$y_test
 
-# Enlever les duplicates
-cat("Number of duplicates in prepared training data:", sum(duplicated(prepared_X_train)), "\n")
-cat("Number of duplicates in prepared test data:", sum(duplicated(prepared_X_test)), "\n")
-prepared_X_train <- prepared_X_train[!duplicated(prepared_X_train), ]
-prepared_X_test <- prepared_X_test[!duplicated(prepared_X_test), ]
-cat("Number of duplicates in prepared training data after removal:", sum(duplicated(prepared_X_train)), "\n")
-cat("Number of duplicates in prepared test data after removal:", sum(duplicated(prepared_X_test)), "\n")
+# Check AFDM (avec one hot encoder 32 dimensions) # 27 dimensions sans one hot encoder, encore réduire ?
+# print(ncol(X_train))
 
-# Afficher les dimensions des données préparées
-dim(prepared_X_train)
-dim(prepared_X_test)
+# Afficher les proportions des classes dans les ensembles d'entraînement et de test
+cat("Proportions des classes dans l'ensemble d'entraînement :\n")
+print(table(y_train) / length(y_train))
+cat("Proportions des classes dans l'ensemble de test :\n")
+print(table(y_test) / length(y_test))
 
-# Afficher la proportion de valeurs manquantes dans les données préparées
-cat("Proportion of missing values in prepared training data:", mean(is.na(prepared_X_train)), "\n")
-cat("Proportion of missing values in prepared test data:", mean(is.na(prepared_X_test)), "\n")
+# Convertir les données préparées en matrices
+X_train_matrix <- as.matrix(X_train)
+X_test_matrix <- as.matrix(X_test)
+
+# Convertir la variable cible en valeurs numériques
+y_train_numeric <- as.numeric(y_train)
+y_test_numeric <- as.numeric(y_test)
 
 ```
 
@@ -80,13 +68,13 @@ y_test <- as.numeric(y_test)
 
 ```{r}
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 1000, optimizer = "adam")
-model$fit(X_train, y_train)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 300,loss="logistique", optimizer="sgd", use_early_stopping=TRUE)
+model$fit(X_train_matrix, y_train_numeric)
 ```
 
 
 ```{r}
-predictions <- model$predict(X_test)
+predictions <- model$predict(X_test_matrix)
 print(predictions)
 ```
 
@@ -94,7 +82,7 @@ print(predictions)
 # Vérifier si des prédictions ont été faites
 #print(y_test)
 # Calculer et afficher l'accuracy
-accuracy <- sum(predictions == y_test) / length(y_test)
+accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
 cat("Accuracy:", accuracy, "\n")
 ```
 ```{r}
@@ -115,24 +103,14 @@ model$plot_loss()
 
 ```{r}
 #tester la fonction var_select()
-model$select_variables(10)
+model$select_variables(5)
 ```
 
 
 ```{r}
-confusion_matrix <- table(Predicted = predictions, Actual = y_test)
+confusion_matrix <- table(Predicted = predictions, Actual = y_test_numeric)
 print(confusion_matrix)
 ```
-
-```{r}
-
-# Appliquer l'factor_analysis_mixed
-factor_scores <- factor_analysis_mixed(data)
-
-# Afficher les résultats
-print(factor_scores)
-```
-
 
 
 
@@ -142,21 +120,21 @@ nnet model
 ```{r}
 # 
 # Initialiser le modèle de régression logistique multinomial
-multinom_model <- nnet::multinom(y_train ~ ., data = as.data.frame(X_train))
+multinom_model <- nnet::multinom(y_train_numeric ~ ., data = as.data.frame(X_train_matrix))
 
 # Faire des prédictions sur l'ensemble de test
-multinom_predictions <- predict(multinom_model, newdata = as.data.frame(X_test))
+multinom_predictions <- predict(multinom_model, newdata = as.data.frame(X_test_matrix))
 
 # Vérifier les prédictions
 print("Multinomial Model Predictions:")
 print(multinom_predictions)
 
 # Calculer et afficher l'accuracy
-multinom_accuracy <- sum(multinom_predictions == y_test) / length(y_test)
+multinom_accuracy <- sum(multinom_predictions == y_test_numeric) / length(y_test_numeric)
 cat("Multinomial Model Accuracy:", multinom_accuracy, "\n")
 
 # Calculer et afficher la matrice de confusion
-multinom_confusion_matrix <- table(Predicted = multinom_predictions, Actual = y_test)
+multinom_confusion_matrix <- table(Predicted = multinom_predictions, Actual = y_test_numeric)
 print("Multinomial Model Confusion Matrix:")
 print(multinom_confusion_matrix)
 ```

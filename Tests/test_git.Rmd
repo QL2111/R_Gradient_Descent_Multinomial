@@ -1,0 +1,129 @@
+
+
+```{r}
+library(devtools)
+devtools::install_github("QL2111/R_Gradient_Descent_Multinomial")
+```
+
+
+```{r}
+data_path <- "D:/M2 SISE/Programmation R/Projet R/R_Gradient_Descent_Multinomial/data/StudentPerformanceFactors.csv" 
+data <- read.csv(data_path)
+```
+
+
+
+
+```{r}
+# use the package
+library(M2LogReg)
+```
+
+
+```{r}
+help("DataPreparer")
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+data$Access_to_Resources <- as.factor(data$Access_to_Resources)
+
+# Diviser les données en ensembles d'entraînement et de test
+set.seed(42)  # Pour la reproductibilité
+
+data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+prepared_data <- data_prep$prepare_data(data, "Access_to_Resources", 0.7, stratify = TRUE, remove_outliers = TRUE, outlier_seuil = 0.10)
+# Check if the proportions are equals
+# print(table(prepared_data$y_train) / length(prepared_data$y_train))
+# print(table(prepared_data$y_test) / length(prepared_data$y_test))
+
+# Accéder aux données préparées
+X_train <- prepared_data$X_train
+X_test <- prepared_data$X_test
+y_train <- prepared_data$y_train
+y_test <- prepared_data$y_test
+
+# Check AFDM (avec one hot encoder 32 dimensions) # 27 dimensions sans one hot encoder, encore réduire ?
+# print(ncol(X_train))
+
+# Afficher les proportions des classes dans les ensembles d'entraînement et de test
+# cat("Proportions des classes dans l'ensemble d'entraînement :\n")
+# print(table(y_train) / length(y_train))
+# cat("Proportions des classes dans l'ensemble de test :\n")
+# print(table(y_test) / length(y_test))
+
+# Convertir les données préparées en matrices
+X_train_matrix <- as.matrix(X_train)
+X_test_matrix <- as.matrix(X_test)
+
+# Convertir la variable cible en valeurs numériques
+y_train_numeric <- as.numeric(y_train)
+y_test_numeric <- as.numeric(y_test)
+
+# Initialiser et ajuster le modèle sur l'ensemble d'entraînement
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 300, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization = "elasticnet")
+# lasso F1 = 0.99
+# ridge F1 = 0.99
+# elasticnet F1 = 0.99
+# FALSE = 0.99
+
+model$fit(X_train_matrix, y_train_numeric)
+
+# Prédire sur l'ensemble de test
+predictions <- model$predict(X_test_matrix)
+
+# Afficher les prédictions
+# print(predictions)
+
+# Calculer et afficher l'accuracy
+# accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
+# cat("Accuracy:", accuracy, "\n")
+model$summary()
+model$plot_loss()
+
+model$print(X_test_matrix, y_test_numeric)
+```
+
+
+
+```{r}
+
+```
+
+
+
+
+```{r}
+
+```
+
+
+
+
+```{r}
+
+```
+
+
+
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+

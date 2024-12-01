@@ -8,21 +8,23 @@ library(nnet)
 # Charger le jeu de données depuis un fichier local après téléchargement de Kaggle
 
 setwd("D:/M2 SISE/Programmation R/Projet R/R_Gradient_Descent_Multinomial/data") # Remplacez par le chemin correct
-data <- read.csv(file = "user_behavior_dataset.csv")
+data <- read.csv(file = "application.csv")
 data
 ```
 
 
 ```{r}
 # S'assurer que la variable cible est un facteur
-data$Device.Model <- as.factor(data$Device.Model)
-
+data$TARGET <- as.factor(data$TARGET)
 ```
 
 
 ```{r}
+# Diviser les données en ensembles d'entraînement et de test
+set.seed(42)  # Pour la reproductibilité
+
 data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-prepared_data <- data_prep$prepare_data(data, "User.Behavior.Class", 0.7, stratify = TRUE)
+prepared_data <- data_prep$prepare_data(data, "TARGET", 0.7, stratify = TRUE)
 
 
 # Accéder aux données préparées
@@ -61,7 +63,7 @@ y_test <- as.numeric(y_test)
 
 ```{r}
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 300,loss="logistique", optimizer="adam", use_early_stopping=TRUE)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 300,loss="logistique", optimizer="adam", use_early_stopping=TRUE)
 model$fit(X_train_matrix, y_train_numeric)
 ```
 
@@ -75,13 +77,15 @@ print(predictions)
 # Vérifier si des prédictions ont été faites
 #print(y_test)
 # Calculer et afficher l'accuracy
-accuracy <- sum(predictions == y_test) / length(y_test)
+accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
 cat("Accuracy:", accuracy, "\n")
 ```
 ```{r}
 #tester la fonction var_select()
 model$var_importance()
 ```
+
+
 ```{r}
 #teste de la fonction summary()
 model$summary()
@@ -101,9 +105,21 @@ model$select_variables(10)
 
 
 ```{r}
-confusion_matrix <- table(Predicted = predictions, Actual = y_test)
+confusion_matrix <- table(Predicted = predictions, Actual = y_test_numeric)
 print(confusion_matrix)
 ```
+
+```{r}
+
+# Appliquer l'factor_analysis_mixed
+factor_scores <- factor_analysis_mixed(data)
+
+# Afficher les résultats
+print(factor_scores)
+```
+
+
+
 
 
 nnet model

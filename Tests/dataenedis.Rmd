@@ -8,21 +8,27 @@ library(nnet)
 # Charger le jeu de données depuis un fichier local après téléchargement de Kaggle
 
 setwd("D:/M2 SISE/Programmation R/Projet R/R_Gradient_Descent_Multinomial/data") # Remplacez par le chemin correct
-data <- read.csv(file = "user_behavior_dataset.csv")
+data <- read.csv(file = "dataenedis.csv")
 data
 ```
 
 
 ```{r}
 # S'assurer que la variable cible est un facteur
-data$Device.Model <- as.factor(data$Device.Model)
+data$Etiquette_DPE <- as.factor(data$Etiquette_DPE)
+
+# Diviser les données en ensembles d'entraînement et de test
+set.seed(42)  # Pour la reproductibilité
 
 ```
 
 
 ```{r}
+# S'assurer que la variable cible est un facteur
+data$Etiquette_DPE <- as.factor(data$Etiquette_DPE)
+
 data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-prepared_data <- data_prep$prepare_data(data, "User.Behavior.Class", 0.7, stratify = TRUE)
+prepared_data <- data_prep$prepare_data(data, "Etiquette_DPE", 0.7, stratify = TRUE)
 
 
 # Accéder aux données préparées
@@ -104,6 +110,18 @@ model$select_variables(10)
 confusion_matrix <- table(Predicted = predictions, Actual = y_test)
 print(confusion_matrix)
 ```
+
+```{r}
+
+# Appliquer l'factor_analysis_mixed
+factor_scores <- factor_analysis_mixed(data)
+
+# Afficher les résultats
+print(factor_scores)
+```
+
+
+
 
 
 nnet model

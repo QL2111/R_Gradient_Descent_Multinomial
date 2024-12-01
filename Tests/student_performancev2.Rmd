@@ -1,0 +1,107 @@
+```{r}
+# nolint start
+# https://www.kaggle.com/datasets/lainguyn123/student-performance-factors Variable à predire: Access_to_Resources
+
+# Charger les bibliothèques nécessaires
+library(R6)
+
+data_path <- "D:/M2 SISE/Programmation R/Projet R/R_Gradient_Descent_Multinomial/Data/StudentPerformanceFactors.csv"  # Remplacez par le chemin de votre fichier
+data <- read.csv(data_path)
+
+# S'assurer que la variable cible est un facteur
+data$Access_to_Resources <- as.factor(data$Access_to_Resources)
+
+# Diviser les données en ensembles d'entraînement et de test
+set.seed(42)  # Pour la reproductibilité
+
+data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+prepared_data <- data_prep$prepare_data(data, "Access_to_Resources", 0.7, stratify = TRUE, remove_outliers = TRUE, outlier_seuil = 0.10)
+# Check if the proportions are equals
+# print(table(prepared_data$y_train) / length(prepared_data$y_train))
+# print(table(prepared_data$y_test) / length(prepared_data$y_test))
+
+# Accéder aux données préparées
+X_train <- prepared_data$X_train
+X_test <- prepared_data$X_test
+y_train <- prepared_data$y_train
+y_test <- prepared_data$y_test
+
+
+# Convertir les données préparées en matrices
+X_train_matrix <- as.matrix(X_train)
+X_test_matrix <- as.matrix(X_test)
+
+# Convertir la variable cible en valeurs numériques
+y_train_numeric <- as.numeric(y_train)
+y_test_numeric <- as.numeric(y_test)
+```
+
+
+
+
+```{r}
+# Initialiser et ajuster le modèle sur l'ensemble d'entraînement
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 300, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization = "L1")
+# lasso F1 = 0.99
+# ridge F1 = 0.99
+# elasticnet F1 = 0.99
+# FALSE = 0.99
+
+model$fit(X_train_matrix, y_train_numeric)
+
+# Prédire sur l'ensemble de test
+predictions <- model$predict(X_test_matrix)
+
+```
+
+
+
+```{r}
+# Afficher les prédictions
+# print(predictions)
+
+# Calculer et afficher l'accuracy
+accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
+cat("Accuracy:", accuracy, "\n")
+
+```
+
+```{r}
+model$summary()
+
+```
+
+```{r}
+model$plot_loss()
+
+```
+
+```{r}
+model$print(X_test_matrix, y_test_numeric)
+
+```
+
+```{r}
+print("Variable Importance:")
+model$var_importance()
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
