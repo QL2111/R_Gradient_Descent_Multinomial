@@ -83,7 +83,7 @@
 #' @usage LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, use_early_stopping = TRUE, regularization = "none", batch_size = 32)
 #' @import R6
 #' 
-#' @field coefficients(weights) Matrix of model coefficients, initialized during the `fit` method.
+#' @field coefficients Matrix of model coefficients(weights), initialized during the `fit` method.
 #' @field learning_rate Numeric. Learning rate for gradient descent optimization. Default is 0.01.
 #' @field num_iterations Integer. Number of iterations for gradient descent optimization. Default is 1000.
 #' @field loss_history Numeric vector. Tracks the loss at each iteration during training.
@@ -120,8 +120,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     
     # class_labels = NULL,  # Store the class labels to rename them later
     
-    #' Initialize the class
-    #'
+    
     #' @description Initializes a new instance of the `LogisticRegressionMultinomial` class.
     #' @param learning_rate Numeric. Sets the learning rate for gradient descent. Default is 0.01.
     #' @param num_iterations Integer. Specifies the number of gradient descent iterations. Default is 1000.

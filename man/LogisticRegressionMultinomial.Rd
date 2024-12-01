@@ -3,6 +3,9 @@
 \name{LogisticRegressionMultinomial}
 \alias{LogisticRegressionMultinomial}
 \title{Logistic Regression Multinomial Class}
+\usage{
+LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, use_early_stopping = TRUE, regularization = "none", batch_size = 32)
+}
 \description{
 The `LogisticRegressionMultinomial` class implements multinomial logistic regression using gradient descent and the Adam optimizer.
 }
@@ -17,7 +20,8 @@ Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation 
 SMOTE # Quentin
 Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
 Documentation
-Peut-être ne pas utiliser caret() + MLmetrics + pROC +  
+Peut-être ne pas utiliser caret() + MLmetrics + pROC + 
+shiny librairie shinydashboard + shinymaterial + Metrics
 LaTeX # Awa
 
 
@@ -73,23 +77,11 @@ installer avec github
 devtools::install_github("Lien du repo")
 # documentation roxygen2::roxygenise().
 
-This class allows users to fit a multinomial logistic regression model, calculate class probabilities using softmax, and make predictions. It supports features like loss tracking, variable importance calculation, and a summary of model performance.
+
+This R6 class supports multiple loss functions, optimizers, regularization methods, and early stopping based on validation loss.
 
 
-The function initializes the coefficients, splits the data into training and validation sets, and performs mini-batch gradient descent using the specified optimizer (Adam or SGD). It also includes early stopping based on validation loss.
-
-The Adam optimizer updates the coefficients using the following formulas:
-\deqn{m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t}
-\deqn{v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2}
-\deqn{\hat{m}_t = \frac{m_t}{1 - \beta_1^t}}
-\deqn{\hat{v}_t = \frac{v_t}{1 - \beta_2^t}}
-\deqn{\theta_t = \theta_{t-1} - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}}
-
-The SGD optimizer updates the coefficients using the following formula:
-\deqn{\theta_t = \theta_{t-1} - \alpha g_t}
-
-
-The Adam optimizer updates the coefficients using the following formulas:
+ The Adam optimizer updates the coefficients using the following formulas:
 \deqn{m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t}
 \deqn{v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2}
 \deqn{\hat{m}_t = \frac{m_t}{1 - \beta_1^t}}
@@ -98,7 +90,7 @@ The Adam optimizer updates the coefficients using the following formulas:
 where \eqn{m_t} and \eqn{v_t} are the first and second moment estimates, \eqn{\beta_1} and \eqn{\beta_2} are the exponential decay rates, \eqn{\alpha} is the learning rate, and \eqn{\epsilon} is a small constant for numerical stability.
 
 
-The function first converts the target labels `y_batch` into a one-hot encoded matrix. It then computes the linear model as:
+The sgd optimizer first converts the target labels `y_batch` into a one-hot encoded matrix. It then computes the linear model as:
 \deqn{Z = X_{batch} \cdot \beta}
 where \eqn{X_{batch}} is the input feature matrix and \eqn{\beta} are the coefficients.
 
@@ -116,19 +108,20 @@ Finally, the coefficients are updated using the gradient and the learning rate:
 \deqn{\beta = \beta - \text{learning\_rate} \cdot \nabla L}
 
 
+
 The softmax function is defined as:
 \deqn{softmax(z_i) = \frac{e^{z_i}}{\sum_{j} e^{z_j}}}
 where \(z_i\) is the \(i\)-th element of the input matrix \(z\).
 
-The function checks if the loss history is available and non-empty. If the loss history is empty, it stops and prompts the user to run the 'fit' method first. Otherwise, it plots the loss history.
 
-The function calculates the ROC AUC for each class using the One vs All strategy. It then plots the ROC curve for each class and displays the AUC value for each class.
+The plot_loss function checks if the loss history is available and non-empty. If the loss history is empty, it stops and prompts the user to run the 'fit' method first. Otherwise, it plots the loss history.
 
-This function prints out the hyperparameters of the model, including the optimizer, learning rate, number of iterations, and loss function. If the optimizer is "adam", it also prints out the Adam-specific parameters: Beta1, Beta2, and Epsilon.
+
+The summary function prints out the hyperparameters of the model, including the optimizer, learning rate, number of iterations, and loss function. If the optimizer is "adam", it also prints out the Adam-specific parameters: Beta1, Beta2, and Epsilon.
 It will also print out the regularization method, batch size, and early stopping parameters.
 
 
-The function performs the following steps:
+The print function performs the following steps:
 \itemize{
   \item Predicts the labels for the test data using the model.
   \item Computes and prints the confusion matrix.
@@ -137,7 +130,23 @@ The function performs the following steps:
 }
 
 
-This function calculates the importance of each feature based on the absolute value of the coefficients. It sums the absolute coefficients for each feature and selects the top 'num_variables' features based on their importance scores.
+
+The log loss is computed using the formula:
+\deqn{J = - \sum_{i=1}^{n} \sum_{k=1}^{K} y_{ik} \times \log(\pi_{ik})}
+where:
+\itemize{
+  \item \( y_{ik} \) is the true label for observation \( i \) and class \( k \) (0 or 1),
+  \item \( \pi_{ik} \) is the predicted probability for observation \( i \) and class \( k \).
+}
+A small value (\code{epsilon = 1e-15}) is used to avoid the computation of \code{log(0)}.
+
+If regularization is enabled, the penalty is added to the loss:
+\deqn{\text{loss} = \text{log loss} + \text{regularization penalty}}
+
+
+
+The select variables function calculates the importance of each feature based on the absolute value of the coefficients. It sums the absolute coefficients for each feature and selects the top 'num_variables' features based on their importance scores.
+
 
 The ElasticNet regularization combines L1 and L2 penalties. The penalty term is computed as:
 \deqn{penalty = \frac{\lambda}{2} \left( (1 - p) \sum_{j=1}^{n} \beta_j^2 + p \sum_{j=1}^{n} |\beta_j| \right)}
@@ -151,7 +160,8 @@ For Lasso regularization, the penalty term is computed as:
 \deqn{penalty = \frac{1}{2} \sum_{j=1}^{n} |\beta_j|}
 where \(\beta_j\) are the model coefficients.
 
-This function generates a PMML file for a multinomial logistic regression model, including the model's
+
+The export_pml function generates a PMML file for a multinomial logistic regression model, including the model's
   coefficients and metadata. It ensures that the model is trained before exporting and uses the PMML version 4.4 format.
 }
 \examples{
@@ -219,9 +229,11 @@ model$print(X_test, y_test)
 ## Method `LogisticRegressionMultinomial$log_loss`
 ## ------------------------------------------------
 
-y_true <- c(1, 0, 1, 0)
-y_pred <- c(0.9, 0.1, 0.8, 0.2)
+# Example usage:
+y_true <- c(1, 0, 1)  # True labels (one-hot encoded for binary classification)
+y_pred <- c(0.9, 0.2, 0.8)  # Predicted probabilities
 log_loss(y_true, y_pred)
+
 
 ## ------------------------------------------------
 ## Method `LogisticRegressionMultinomial$mse_loss`
@@ -242,7 +254,7 @@ model$select_variables(num_variables = 5)
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{coefficients}}{Matrix of model coefficients, initialized during the `fit` method.}
+\item{\code{coefficients}}{Matrix of model coefficients(weights), initialized during the `fit` method.}
 
 \item{\code{learning_rate}}{Numeric. Learning rate for gradient descent optimization. Default is 0.01.}
 
@@ -348,16 +360,15 @@ Initializes a new instance of the `LogisticRegressionMultinomial` class.
 \subsection{Returns}{
 A new `LogisticRegressionMultinomial` object.
 Fit the Multinomial Logistic Regression Model
-
-This function fits a multinomial logistic regression model to the given data using either the Adam or SGD optimizer.
-By default, the model uses early stopping based on the validation loss with a patience of 20 iterations.
-It will also use by default the logistique loss function, the Adam optimizer with a mini-batch of 32, and no regularization.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-fit"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-fit}{}}}
 \subsection{Method \code{fit()}}{
+This function fits a multinomial logistic regression model to the given data using either the Adam or SGD optimizer.
+By default, the model uses early stopping based on the validation loss with a patience of 20 iterations.
+It will also use by default the cross logisitc loss function, the Adam optimizer with a mini-batch of 32, and no regularization.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$fit(X, y, validation_split = 0.2)}\if{html}{\out{</div>}}
 }
@@ -579,14 +590,12 @@ A vector of predicted class labels for each sample.
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-var_importance"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-var_importance}{}}}
 \subsection{Method \code{var_importance()}}{
-This function calculates the importance of each feature based on the absolute value of the coefficients. It averages the absolute coefficients across all classes and sorts them in descending order.
+This function calculates the importance of each feature based on the absolute value of the coefficients.
+It averages the absolute coefficients across all classes and sorts them in descending order. It then prints the variable importance scores and plots a bar chart to visualize the importance of each feature.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$var_importance()}\if{html}{\out{</div>}}
 }
 
-\subsection{Returns}{
-A vector of feature importance scores, sorted in descending order.
-}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-plot_loss"></a>}}
@@ -705,10 +714,10 @@ model$print(X_test, y_test)
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-log_loss"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-log_loss}{}}}
 \subsection{Method \code{log_loss()}}{
-This function computes the log loss, also known as logistic loss or cross-entropy loss, 
-between the true labels and the predicted probabilities. The log loss is calculated as:
-\deqn{-\frac{1}{N} \sum_{i=1}^{N} [y_i \log(p_i) + (1 - y_i) \log(1 - p_i)]}
-where \eqn{N} is the number of samples, \eqn{y_i} is the true label of the i-th sample, and \eqn{p_i} is the predicted probability of the i-th sample.
+This function computes the log loss (logarithmic loss) for a given set of true 
+labels and predicted probabilities, with an optional regularization penalty.
+The log loss is a common metric for evaluating classification models, especially
+in logistic regression and neural networks.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$log_loss(y_true, y_pred)}\if{html}{\out{</div>}}
 }
@@ -716,20 +725,24 @@ where \eqn{N} is the number of samples, \eqn{y_i} is the true label of the i-th 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{y_true}}{A numeric vector of true labels.}
+\item{\code{y_true}}{A numeric vector or matrix of true class labels in one-hot encoding 
+format (i.e., a binary indicator for each class).}
 
-\item{\code{y_pred}}{A numeric vector of predicted probabilities.}
+\item{\code{y_pred}}{A numeric vector or matrix of predicted probabilities for each class. 
+Values must be between 0 and 1.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A numeric value representing the log loss.
+The computed log loss value with an added regularization penalty, if applicable.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{y_true <- c(1, 0, 1, 0)
-y_pred <- c(0.9, 0.1, 0.8, 0.2)
+\preformatted{# Example usage:
+y_true <- c(1, 0, 1)  # True labels (one-hot encoded for binary classification)
+y_pred <- c(0.9, 0.2, 0.8)  # Predicted probabilities
 log_loss(y_true, y_pred)
+
 }
 \if{html}{\out{</div>}}
 
