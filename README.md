@@ -220,21 +220,22 @@ model$select_variables(5)
 ```
 
 <h2 id="output">📊 Example Output with R Shiny</h2>
+![Extrait Documentation DataPreparer](/images/Extrait_doc_DataPreparer.png)
 
 Data importaion :
-![Extrait Documentation DataPreparer](/images/importation.png)
+![Data importaion](/images/importation.jpg)
 Model parameters :
-![Extrait Documentation DataPreparer](/images/param_model.png)
-Preprocessing Parameters
-![Extrait Documentation DataPreparer](/images/param_preprocessing.png)
+![Model parameters](/images/param_model.jpg)
+Preprocessing Parameters :
+![Preprocessing Parameters](/images/param_preprocessing.jpg)
 Hyperparameters and Metrics :
-![Extrait Documentation DataPreparer](/images/resultats.png)
+![Hyperparameters and Metrics](/images/resultats.jpg)
 Evolution of the Loss :
-![Extrait Documentation DataPreparer](/images/loss.png)
+![Evolution of the Loss](/images/loss.jpg)
 ROC :
-![Extrait Documentation DataPreparer](/images/ROC.png)
+![ROC](/images/ROC.jpg)
 Variables Importances :
-![Extrait Documentation DataPreparer](/images/var_importances.png)
+![Variables Importances](/images/var_importances.jpg)
 
 
 <h2 id="multinomial-target-handling">🎯 Multinomial Target Handling</h2>
