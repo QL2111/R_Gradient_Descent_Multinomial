@@ -98,14 +98,6 @@ mse_loss(y_true, y_pred)
 \dontrun{
 model$select_variables(num_variables = 5)
 }
-
-## ------------------------------------------------
-## Method `LogisticRegressionMultinomial$export_pmml`
-## ------------------------------------------------
-
-\dontrun{
-model$export_pmml("model.pmml")
-}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -828,16 +820,6 @@ The export_pml function generates a PMML file for a multinomial logistic regress
 \subsection{Returns}{
 Saves the PMML representation of the trained model to the specified file and returns a success message.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-model$export_pmml("model.pmml")
-}
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-clone"></a>}}
