@@ -186,7 +186,7 @@ probabilities <- softmax(z)
 ## Method `LogisticRegressionMultinomial$plot_loss`
 ## ------------------------------------------------
 
-{
+\dontrun{
 model$plot_loss()
 }
 
@@ -194,7 +194,7 @@ model$plot_loss()
 ## Method `LogisticRegressionMultinomial$plot_auc`
 ## ------------------------------------------------
 
-{
+\dontrun{
 model$plot_auc(X_test, y_test)
 }
 
@@ -602,7 +602,7 @@ A plot showing the convergence of the loss function over iterations.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{{
+\preformatted{\dontrun{
 model$plot_loss()
 }
 }
@@ -636,7 +636,7 @@ A plot showing the ROC curve and the AUC value.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{{
+\preformatted{\dontrun{
 model$plot_auc(X_test, y_test)
 }
 }

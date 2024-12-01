@@ -175,7 +175,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @return None. The function updates the model's coefficients in place.
     #'
     #' @examples
-    #' {
+    #' \dontrun{
     #' model <- LogisticRegressionMultinomial$new()
     #' model$fit(X, y, validation_split = 0.2)
     #' }
@@ -459,7 +459,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' The plot_loss function checks if the loss history is available and non-empty. If the loss history is empty, it stops and prompts the user to run the 'fit' method first. Otherwise, it plots the loss history.
     #' @return A plot showing the convergence of the loss function over iterations.
     #' @examples
-    #' {
+    #' \dontrun{
     #' model$plot_loss()
     #' }
     #' @export 
@@ -481,7 +481,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @param probabilities A matrix of class probabilities for the test data. If not provided, the model will predict probabilities using the test features.
     #' @return A plot showing the ROC curve and the AUC value.
     #' @examples
-    #' {
+    #' \dontrun{
     #' model$plot_auc(X_test, y_test)
     #' }
     #' @import pROC
@@ -534,7 +534,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' It will also print out the regularization method, batch size, and early stopping parameters.
     #' @return None. This function is used for its side effect of printing the model's hyperparameters.
     #' @examples
-    #' {
+    #' \dontrun{
     #' model$summary()
     #' }
     summary = function() {
@@ -571,7 +571,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' }
     #'
     #' @examples
-    #' {
+    #' \dontrun{
     #' model$print(X_test, y_test)
     #' }
     #'
@@ -696,7 +696,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' The select variables function calculates the importance of each feature based on the absolute value of the coefficients. It sums the absolute coefficients for each feature and selects the top 'num_variables' features based on their importance scores.
     #' @return None. This function is used for its side effect of printing the selected variables.
     #' @examples
-    #' {
+    #' \dontrun{
     #' model$select_variables(num_variables = 5)
     #' }
     select_variables = function(num_variables) {
