@@ -69,7 +69,7 @@ model$plot_loss()
 # print(confusion_matrix)
 
 # Importance des variables
-# model$var_importance()
+model$var_importance()
 
 # test 
 # print(model$predict_proba(X_test_matrix))

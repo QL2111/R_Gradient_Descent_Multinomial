@@ -14,7 +14,8 @@
 #' SMOTE # Quentin
 #' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
 #' Documentation
-#' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  
+#' Peut-être ne pas utiliser caret() + MLmetrics + pROC + 
+#' shiny librairie shinydashboard + shinymaterial + Metrics
 #' LaTeX # Awa
 #' 
 #' 
@@ -218,6 +219,10 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       best_loss <- Inf
       patience_counter <- 0
       
+      # # Create a cluster for parallel processing
+      # cl <- makeCluster(detectCores() - 1)
+      # clusterExport(cl, c("self", "X_train", "y_train", "unique_classes", "num_features", "num_classes"))
+      
       for (i in 1:self$num_iterations) {
         # Shuffle for mini-batch
         indices <- sample(1:nrow(X_train))
@@ -242,6 +247,15 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
             stop("Invalid optimizer. Choose 'adam' or 'sgd'.")
           }
         }
+
+        # # Combine results from mini-batches
+        # for (result in results) {
+        #   self$coefficients <- result$coefficients
+        #   if (self$optimizer == "adam") {
+        #     m <- result$m
+        #     v <- result$v
+        #   }
+        # }
         
         # Validation set for early stopping
         val_loss <- self$validate(X_val, y_val, unique_classes)
@@ -261,6 +275,9 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
           break
         }
       }
+      # # Stop the cluster
+      # stopCluster(cl)
+
     },
 
     #' Adam Optimizer for Multinomial Logistic Regression
@@ -411,22 +428,34 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       return(apply(probabilities, 1, which.max))  # Convert back to 0 and 1 instead of 1 and 2
     },
     
-    #' @description This function calculates the importance of each feature based on the absolute value of the coefficients. It averages the absolute coefficients across all classes and sorts them in descending order.
-    #' @return A vector of feature importance scores, sorted in descending order.
+    #' @description This function calculates the importance of each feature based on the absolute value of the coefficients.
+    #' It averages the absolute coefficients across all classes and sorts them in descending order. It then prints the variable importance scores and plots a bar chart to visualize the importance of each feature.
     #' @export
     var_importance = function() {
-      coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
-      feature_names <- colnames(self$coefficients)[-1]  # Récupérer les noms des colonnes
+      coef_matrix <- abs(self$coefficients[-1, ])  # Exclude the intercept term
+      feature_names <- colnames(self$coefficients)[-1]  
       
-      # Importance par classe
-      importance_scores <- rowMeans(coef_matrix)  # Moyenne des coefficients absolus pour toutes les classes
-      importance_ranked <- sort(importance_scores, decreasing = TRUE) # Trier par ordre décroissant
+      importance_scores <- rowMeans(coef_matrix)   # Average the absolute coefficients across classes
+      importance_ranked <- sort(importance_scores, decreasing = TRUE) 
       
-      # Afficher les importances
+      # Print the variable importance
       cat("Variable Importance (sorted):\n")
       for (i in seq_along(importance_ranked)) {
         cat(names(importance_ranked)[i], ": ", round(importance_ranked[i], 4), "\n")
       }
+
+      # Plot variable importance
+      importance_df <- data.frame(Feature = names(importance_ranked), Importance = importance_ranked)
+      barplot(
+        height = importance_df$Importance,
+        names.arg = importance_df$Feature,
+        las = 2,  # Rotate labels
+        col = "steelblue",
+        main = "Variable Importance",
+        xlab = "Features",
+        ylab = "Importance",
+        cex.names = 0.9  
+      )
       
       # Retourner les scores
       #return(importance_ranked)
