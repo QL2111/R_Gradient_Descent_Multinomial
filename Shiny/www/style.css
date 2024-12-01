@@ -3,12 +3,17 @@ body {
   color: #ffffff;
   font-family: 'Arial', sans-serif;
   font-size: 14px;
+  padding-top: 50px;
 }
 
 /* Header */
 .main-header {
   background-color: #1a237e !important;
   color: #ffffff;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
 }
 
 .main-header .logo {
@@ -78,6 +83,7 @@ body {
   color: #ffffff;
   font-weight: bold;
   border-radius: 5px;
+  margin-left: 100px;
 }
 
 .btn:hover {
@@ -148,4 +154,10 @@ tr:nth-child(even) {
 /* Barre de chargement */
 .progress-bar {
   background-color: #009933 !important;
+}
+
+.shiny-notification {
+  background-color: #d4edda; /* Vert clair */
+  border-left: 5px solid #28a745; /* Bordure verte */
+  color: #155724; /* Texte vert foncé */
 }

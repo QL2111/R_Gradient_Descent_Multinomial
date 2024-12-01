@@ -1,9 +1,8 @@
 library(shiny)
 library(DT)
 library(Metrics)  # Pour calculer l'AUC
-
-# source("R/LogisticRegressionMultinomial.R")
-# source("R/DataPrerarer.R")
+library(readxl)  # Pour lire les fichiers XLSX
+library(pROC)
 
 server <- function(input, output, session) {
   
@@ -26,12 +25,26 @@ server <- function(input, output, session) {
   })
   
   # Mettre à jour la sélection de la variable cible
+  # observe({
+  #   dataset <- data()
+  #   if (!is.null(dataset)) {
+  #     updateSelectInput(session, "target_var", choices = names(dataset), selected = names(dataset)[ncol(dataset)])
+  #   }
+  # })
+  # Mettre à jour la sélection de la variable cible
   observe({
-    dataset <- data()
+    dataset <- data()  # Récupérer les données actuelles
     if (!is.null(dataset)) {
-      updateSelectInput(session, "target_var", choices = names(dataset), selected = names(dataset)[ncol(dataset)])
+      # Si le jeu de données est importé (par fichier), les colonnes de ce jeu sont affichées
+      if (input$data_choice == "uploaded") {
+        updateSelectInput(session, "target_var", choices = names(dataset), selected = names(dataset)[ncol(dataset)])
+      } else {
+        # Sinon, utilisez les noms de colonnes de l'iris (jeu de données par défaut)
+        updateSelectInput(session, "target_var", choices = names(dataset), selected = names(dataset)[ncol(dataset)])
+      }
     }
   })
+  
   
   # Afficher le tableau des données importées
   output$data_table <- DT::renderDT({
@@ -52,42 +65,54 @@ server <- function(input, output, session) {
     selectInput("target_var", "Variable cible:", choices = names(data()), selected = names(data())[ncol(data())])
   })
   
-  # Fonction pour préparer les données
-  prepare_data <- function(X, y) {
-    if (!is.matrix(X)) {
-      X <- as.matrix(X)
-    }
-    if (nrow(X) != length(y)) {
-      stop("Le nombre de lignes de X ne correspond pas à la longueur de y")
-    }
-    X <- cbind(1, X)  # Ajout de la colonne de biais
-    return(X)
-  }
-  
   observeEvent(input$train, {
-    req(data())
+    req(data())  # Assure que data() n'est pas NULL
     dataset <- data()
     target_var <- input$target_var
-    X <- dataset[, !names(dataset) %in% target_var]
-    y <- as.factor(dataset[[target_var]])
+    
+    # S'assurer que la variable cible est un facteur
+    dataset[[target_var]] <- as.factor(dataset[[target_var]])
+    
+    # Vérifier si les données contiennent des lignes
+    if (nrow(dataset) == 0) {
+      showNotification("Le dataset est vide.", type = "error")
+      return(NULL)
+    }
     
     # Vérification des valeurs manquantes
-    if (any(is.na(X)) || any(is.na(y))) {
+    if (any(is.na(dataset))) {
       showNotification("Les données contiennent des valeurs manquantes. Veuillez les traiter avant de continuer.", type = "error")
       return(NULL)
     }
     
-    # Division des données en ensembles d'entraînement et de test
-    set.seed(123)
-    train_indices <- sample(seq_len(nrow(X)), size = 0.7 * nrow(X))
-    X_train <- X[train_indices, ]
-    y_train <- y[train_indices]
-    X_test <- X[-train_indices, ]
-    y_test <- y[-train_indices]
+    # Étape de préparation des données
+    prepare_data_instance <- DataPreparer$new(
+      use_factor_analysis = as.logical(input$use_factor_analysis)
+    )
     
-    # Préparer les données
-    X_train_prepared <- prepare_data(X_train, y_train)
-    X_test_prepared <- prepare_data(X_test, y_test)
+    # Appeler `prepare_data` directement
+    prepared_data <- prepare_data_instance$prepare_data(
+      data = dataset,
+      target_col = target_var,
+      split_ratio = input$split_ratio,  # Ajoutez cette entrée à l'interface si elle est nécessaire
+      stratify = as.logical(input$stratify),                 # Vous pouvez ajouter cette option si besoin
+      remove_outliers = input$remove_outliers,
+      outlier_seuil = input$outlier_threshold
+    )
+    
+    # Accéder aux données préparées
+    X_train <- prepared_data$X_train
+    X_test <- prepared_data$X_test
+    y_train <- prepared_data$y_train
+    y_test <- prepared_data$y_test
+    
+    # Convertir les données préparées en matrices
+    X_train_matrix <- as.matrix(X_train)
+    X_test_matrix <- as.matrix(X_test)
+    
+    # Convertir la variable cible en valeurs numériques
+    y_train_numeric <- as.numeric(y_train)
+    y_test_numeric <- as.numeric(y_test)
     
     # Entraînement du modèle de régression logistique multinomiale
     logistic_model <- LogisticRegressionMultinomial$new(
@@ -98,83 +123,87 @@ server <- function(input, output, session) {
       patience = input$patience,
       use_early_stopping = TRUE
     )
-    logistic_model$fit(X_train_prepared, y_train)
+    
+    logistic_model$fit(X_train_matrix, y_train_numeric)
     model(logistic_model)  # Stocker le modèle pour les étapes suivantes
     
-    # Générer les prédictions
-    predictions <- logistic_model$predict(X_test_prepared)
+    # Afficher une notification de succès
+    showNotification("Le modèle a été entraîné avec succès.", type = "message", duration = 5)  # Affichage de la notification
     
-    # Confusion matrix et métriques
-    confusion_matrix <- table(Predicted = predictions, Actual = y_test)
-    results$conf_matrix <- confusion_matrix
-    results$metrics <- logistic_model$print(X_test_prepared, y_test)
-    results$loss_plot <- logistic_model$loss_history
-  })
-  
-  # Afficher le résumé du modèle
-  output$summary_output <- renderPrint({
-    req(model())
-    model()$summary()
-  })
-  
-  # Afficher les métriques
-  output$metrics_output <- renderPrint({
-    req(results$metrics)
-    cat(results$metrics, sep = "\n")
-  })
-  
-  # Afficher la courbe de perte
-  output$loss_plot <- renderPlot({
-    req(results$loss_plot)
-    plot(results$loss_plot, type = "l", col = "blue", lwd = 2,
-         main = "Loss Function Convergence",
-         xlab = "Iterations", ylab = "Loss")
-  })
-  
-  # Afficher les courbes ROC
-  output$roc_plot <- renderPlot({
-    req(model(), data())
-    dataset <- data()
-    target_var <- input$target_var
-    X <- dataset[, !names(dataset) %in% target_var]
-    y <- as.factor(dataset[[target_var]])
     
-    # Préparer les données
-    X_prepared <- prepare_data(X, y)
-    probabilities <- model()$predict_proba(X_prepared)
+    # Prédire sur l'ensemble de test
+    predictions <- model()$predict(X_test_matrix) 
     
-    # Tracer les courbes ROC
-    plot_colors <- rainbow(ncol(probabilities))
-    for (i in 1:ncol(probabilities)) {
-      binary_response <- as.numeric(y == levels(y)[i])
-      roc_curve <- roc(binary_response, probabilities[, i])
-      if (i == 1) {
-        plot(roc_curve, col = plot_colors[i], main = "ROC Curves", lwd = 2)
-      } else {
-        plot(roc_curve, col = plot_colors[i], add = TRUE, lwd = 2)
-      }
-    }
-    legend("bottomright", legend = levels(y), fill = plot_colors)
-  })
-  
-  # Afficher l'AUC
-  output$auc_values <- renderPrint({
-    req(model(), data())
-    dataset <- data()
-    target_var <- input$target_var
-    X <- dataset[, !names(dataset) %in% target_var]
-    y <- as.factor(dataset[[target_var]])
+    probabilites <- model()$predict_proba(X_test_matrix)
+    print(probabilites)
     
-    # Préparer les données
-    X_prepared <- prepare_data(X, y)
-    probabilities <- model()$predict_proba(X_prepared)
+    # Calculer et afficher l'accuracy
+    accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
+    results$accuracy <- accuracy
     
-    auc_values <- sapply(1:ncol(probabilities), function(i) {
-      binary_response <- as.numeric(y == levels(y)[i])
-      auc(binary_response, probabilities[, i])
+    # Afficher le résumé du modèle
+    output$summary_output <- renderPrint({
+      req(model())
+      model()$summary()
     })
-    cat("AUC Values:\n")
-    print(auc_values)
-  })
-}
+    
+    # Afficher les métriques
+    output$metrics_output <- renderPrint({
+      req(results$accuracy)
+      cat("Accuracy: ", results$accuracy, "\n")
+    })
+    
+    # Afficher la courbe de perte
+    output$loss_plot <- renderPlot({
+      req(model())
+      model()$plot_loss()  # Utilisation de la méthode plot_loss pour afficher la courbe de perte
+    })
+    
+    # Afficher la courbe roc
+    output$roc_plot <- renderPlot({
+      req(model())
+      model()$plot_auc(X_test_matrix, y_test_numeric, probabilites)  # Utilisation de la méthode plot_loss pour afficher la courbe de perte
+    })
+    
+    # Afficher graphe var importance
+    output$var_imp_plot <- renderPlot({
+      req(model())
+      model()$var_importance()  # Utilisation de la méthode plot_loss pour afficher la courbe de perte
+    })
 
+  }) 
+  
+  # Exporter le modèle en PMML lorsque l'utilisateur appuie sur "Exporter"
+  observeEvent(input$exportpmml, {
+    req(model())  # Assurer que le modèle a bien été entraîné
+    
+    # Créer un fichier temporaire pour PMML
+    temp_pmml_path <- tempfile(pattern = "model_", fileext = ".pmml")
+    
+    tryCatch({
+      # Appeler la méthode export_pmml pour exporter le modèle
+      model()$export_pmml(temp_pmml_path)
+      
+      # Créer un lien pour permettre à l'utilisateur de télécharger le fichier PMML
+      output$download_link <- renderUI({
+        downloadButton("download_pmml", "Télécharger le modèle")
+      })
+      
+      # Gestion du téléchargement
+      output$download_pmml <- downloadHandler(
+        filename = function() {
+          paste("model_", Sys.Date(), ".pmml", sep = "")
+        },
+        content = function(file) {
+          file.copy(temp_pmml_path, file)
+        }
+      )
+      
+      # Notification de succès
+      showNotification("Le modèle a été exporté avec succès. Cliquez pour le télécharger.", type = "message")
+    }, error = function(e) {
+      showNotification(paste("Erreur lors de l'exportation du modèle:", e$message), type = "error")
+    })
+  })
+  
+}  
