@@ -40,7 +40,6 @@ server <- function(input, output, session) {
     }
   })
   
-  
   # Afficher le tableau des données importées
   output$data_table <- DT::renderDT({
     req(data())
@@ -132,7 +131,7 @@ server <- function(input, output, session) {
     
     probabilites <- model()$predict_proba(X_test_matrix)
     print(probabilites)
-  
+    
     
     # Afficher le résumé du modèle
     output$summary_output <- renderPrint({
@@ -160,7 +159,7 @@ server <- function(input, output, session) {
     # Afficher les métriques dans metrics_output
     output$metrics_output <- renderPrint({
       cat(metrics_text)
-
+    })
     
     # Afficher la courbe de perte
     output$loss_plot <- renderPlot({
@@ -171,15 +170,15 @@ server <- function(input, output, session) {
     # Afficher la courbe roc
     output$roc_plot <- renderPlot({
       req(model())
-      model()$plot_auc(X_test_matrix, y_test_numeric, probabilites)  # Utilisation de la méthode plot_loss pour afficher la courbe de perte
+      model()$plot_auc(X_test_matrix, y_test_numeric, probabilites)  # Utilisation de la méthode plot_auc pour afficher la courbe ROC
     })
     
     # Afficher graphe var importance
     output$var_imp_plot <- renderPlot({
       req(model())
-      model()$var_importance()  # Utilisation de la méthode plot_loss pour afficher la courbe de perte
+      model()$var_importance()  # Utilisation de la méthode var_importance pour afficher l'importance des variables
     })
-
+    
   }) 
   
   # Exporter le modèle en PMML lorsque l'utilisateur appuie sur "Exporter"
@@ -215,4 +214,4 @@ server <- function(input, output, session) {
     })
   })
   
-}  
+}
