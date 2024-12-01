@@ -243,4 +243,5 @@ You can certainly contribute by working on these topics :
 - Enhancing the visualization capabilities for model evaluation.
 - Improve the UI.
 - Continue the interconnection between the package and the Rshiny using Docker.
+- Add error messages to report unspecified parameters on the shiny interface.
 
