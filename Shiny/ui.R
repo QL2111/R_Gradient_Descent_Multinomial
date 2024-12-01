@@ -57,7 +57,8 @@ ui <- dashboardPage(
             numericInput("num_iterations", "Nombre d'itérations:", 1000, min = 100, max = 10000, step = 100),
             selectInput("optimizer", "Optimiseur:", choices = c("adam", "sgd")),
             selectInput("regularization", "Regularisation:", choices = c("none", "lasso", "ridge", "elasticnet")),
-            numericInput("patience", "Patience pour early stopping:", 10, min = 1, max = 100, step = 1)
+            numericInput("patience", "Patience pour early stopping:", 10, min = 1, max = 100, step = 1),
+            numericInput("batch_size", "Batch size:", 32),
           )
         ),
         
@@ -88,7 +89,7 @@ ui <- dashboardPage(
         tabName = "results",
         fluidRow(
           box(
-            title = "Résumé", width = 6,
+            title = "Hyperparamètres", width = 6,
             solidHeader = TRUE, verbatimTextOutput("summary_output")
           ),
           box(

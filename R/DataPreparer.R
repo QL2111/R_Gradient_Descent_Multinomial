@@ -98,10 +98,10 @@ DataPreparer = R6::R6Class("DataPreparer",
       test_data = split$test
       
       # Process training data
-      train_data_prepared = self$process_data(train_data, target_col)
+      train_data_prepared = self$process_data(train_data)
       
       # Process test data
-      test_data_prepared = self$process_data(test_data, target_col)
+      test_data_prepared = self$process_data(test_data)
       
       # Extract features and target
       X_train = train_data_prepared[, colnames(train_data_prepared) != target_col]
@@ -143,17 +143,13 @@ DataPreparer = R6::R6Class("DataPreparer",
     
     #' @description Processes the data by standardizing numeric variables and applying factor analysis if specified.
     #' @param data A data frame.
-    #' @param target_col Character. The name of the target column.
     #' @return A processed data frame.
     #' @export
-    process_data = function(data, target_col) {
+    process_data = function(data) {
       quantitative_vars = sapply(data, is.numeric) # Check the type isnumeric
       qualitative_vars = !quantitative_vars # Check the type is not numeric
       prepared_list = list()
       
-      # Exclude the target column from the qualitative variables
-      qualitative_vars[target_col] = FALSE
-
       # Process quantitative variables: standardization
       if (any(quantitative_vars)) {
         # quant_data = data[, quantitative_vars, drop = FALSE] # drop=FALSE to keep data frame or else it will transform into a vector

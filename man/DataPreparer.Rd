@@ -184,15 +184,13 @@ A data frame with missing values imputed.
 \subsection{Method \code{process_data()}}{
 Processes the data by standardizing numeric variables and applying factor analysis if specified.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$process_data(data, target_col)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$process_data(data)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{data}}{A data frame.}
-
-\item{\code{target_col}}{Character. The name of the target column.}
 }
 \if{html}{\out{</div>}}
 }

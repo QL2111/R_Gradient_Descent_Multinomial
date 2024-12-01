@@ -50,7 +50,7 @@ y_test_numeric <- as.numeric(y_test)
 # initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", 
 #     optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, 
 #     use_early_stopping = TRUE, regularization = "none", batch_size = 32) 
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 500, loss="logistique", optimizer="adam",batch_size=32, use_early_stopping=TRUE, regularization = "elasticnet")
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 500, loss="logistique", optimizer="adam",batch_size=32, use_early_stopping=TRUE, regularization = FALSE)
 # lasso F1 = 0.99
 # ridge F1 = 0.99
 # elasticnet F1 = 0.99
@@ -71,7 +71,7 @@ model$summary()
 model$plot_loss()
 
 model$print(X_test_matrix, y_test_numeric)
-print("Variable Importance:")
-model$var_importance()
+# print("Variable Importance:")
+# model$var_importance()
 
 # nolint end
