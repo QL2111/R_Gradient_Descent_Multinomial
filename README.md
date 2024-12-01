@@ -52,6 +52,13 @@ install.packages([Specify your path here], repos = NULL, type = "source")
 
 ```
 
+This project also include a R Shiny app, we can run it by using :
+```
+library(shiny)
+# From the R_Gradient_Descent_Multinomial folder
+runApp("Shiny/app.R")
+
+```
 
 <h2 id="package-architecture">🔧 Package Architecture</h2>
 

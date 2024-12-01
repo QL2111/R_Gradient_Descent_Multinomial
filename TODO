@@ -7,12 +7,12 @@
 
 #' Faire mini batch # Quentin (Descente de gradient) ### OK
 #' Sortie graphique var importances(barplot) # Awa ### OK
-#' Vérifier qu'il y a tout les returns et examples pour la doc roxygen!!!!!!!
-#' Pseudo code # Awa->Quentin ### OK
-#' ReadMe Github  # Quentin En cours -> Fixer le Usage Examples 
+#' Vérifier qu'il y a tout les returns et examples pour la doc roxygen -> Quentin ### Génère des bugs(Internal Server Error, on préfère une version plus simple)
+#' Pseudo code # Awa-> Quentin ### OK
+#' ReadMe Github  # Quentin En cours -> Fixer le Usage Examples
 #' Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation + early stopping # Daniella
-#' SMOTE # Quentin # Abandonée
-#' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd# Abandonée
+#' SMOTE # Quentin
+#' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
 #' Documentation Roxygen # Quentin ### OK
 #' Revoir rapport LaTeX + Tableaux des comparaisons selon les paramètres # Quentin
 #' Peut-être ne pas utiliser caret() + MLmetrics + pROC + 
