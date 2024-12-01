@@ -687,6 +687,10 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @details 
     #' The export_pml function generates a PMML file for a multinomial logistic regression model, including the model's
     #'   coefficients and metadata. It ensures that the model is trained before exporting and uses the PMML version 4.4 format.
+    #' @examples
+    #' \dontrun{
+    #' model$export_pmml("model.pmml")
+    #' }
     export_pmml = function(file_path) {
       # Check if the model is trained
       if (is.null(self$coefficients)) {
