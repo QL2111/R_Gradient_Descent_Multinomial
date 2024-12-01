@@ -93,7 +93,7 @@
 #' @field loss_function Function. Loss function to use for optimization. Options are "quadratique", "logistique". Default is "logistique".
 #' @field loss_name Character. Name of the loss function used.
 #' @field optimizer Character. Optimizer to use for gradient descent. Options are "adam", "sgd". Default is "adam".
-#'
+#' @field batch_size Integer. Size of the mini-batch for gradient descent. Default is 32.
 #' @export
 LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
   public = list(
@@ -159,12 +159,35 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     },
 
     
-    #' @description Fits the multinomial logistic regression model to the provided data.
-    #' @param X A data frame or matrix of predictors (features), where rows represent samples and columns represent features.
-    #' @param y A factor or character vector representing the response variable (target classes).
-    #' @param validation_split Numeric. Fraction of the training data to be used as validation data. Default is 0.2.
-    #' @details The `fit` method initializes model coefficients and applies gradient descent to minimize the loss function. It calculates class probabilities with softmax and updates coefficients based on the gradient.
-    #' @return No return value; updates the model's coefficients.
+    #' Fit the Multinomial Logistic Regression Model
+    #'
+    #' This function fits a multinomial logistic regression model to the given data using either the Adam or SGD optimizer.
+    #' By default, the model uses early stopping based on the validation loss with a patience of 20 iterations.
+    #' It will also use by default the logistique loss function, the Adam optimizer with a mini-batch of 32, and no regularization.
+    #' @param X A matrix or data frame of input features.
+    #' @param y A factor vector of target labels.
+    #' @param validation_split A numeric value indicating the proportion of the data to be used for validation (default is 0.2).
+    #'
+    #' @details
+    #' The function initializes the coefficients, splits the data into training and validation sets, and performs mini-batch gradient descent using the specified optimizer (Adam or SGD). It also includes early stopping based on validation loss.
+    #'
+    #' The Adam optimizer updates the coefficients using the following formulas:
+    #' \deqn{m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t}
+    #' \deqn{v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2}
+    #' \deqn{\hat{m}_t = \frac{m_t}{1 - \beta_1^t}}
+    #' \deqn{\hat{v}_t = \frac{v_t}{1 - \beta_2^t}}
+    #' \deqn{\theta_t = \theta_{t-1} - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}}
+    #'
+    #' The SGD optimizer updates the coefficients using the following formula:
+    #' \deqn{\theta_t = \theta_{t-1} - \alpha g_t}
+    #'
+    #' @return None. The function updates the model's coefficients in place.
+    #'
+    #' @examples
+    #' \dontrun{
+    #' model <- LogisticRegressionMultinomial$new()
+    #' model$fit(X, y, validation_split = 0.2)
+    #' }
     fit = function(X, y, validation_split = 0.2) {
       y <- factor(y)  
       unique_classes <- levels(y)
@@ -240,10 +263,28 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       }
     },
 
-    #' @description Computes the log loss for the given true and predicted probabilities.
-    #' @param y_true A binary matrix of true class labels, where each row corresponds to a sample and each column corresponds to a class.
-    #' @param y_pred A matrix of predicted probabilities for each class, where each row corresponds to a sample and each column corresponds to a class.
-    #' @return The log loss value.
+    #' Adam Optimizer for Multinomial Logistic Regression
+    #'
+    #' This function performs a single update of the coefficients using the Adam optimization algorithm. It computes the loss, gradients, and updates the coefficients based on the first and second moment estimates.
+    #' @details The Adam optimizer updates the coefficients using the following formulas:
+    #' \deqn{m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t}
+    #' \deqn{v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2}
+    #' \deqn{\hat{m}_t = \frac{m_t}{1 - \beta_1^t}}
+    #' \deqn{\hat{v}_t = \frac{v_t}{1 - \beta_2^t}}
+    #' \deqn{\theta_t = \theta_{t-1} - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}}
+    #' where \eqn{m_t} and \eqn{v_t} are the first and second moment estimates, \eqn{\beta_1} and \eqn{\beta_2} are the exponential decay rates, \eqn{\alpha} is the learning rate, and \eqn{\epsilon} is a small constant for numerical stability.
+    #' @param X_batch A matrix of input features for the current batch.
+    #' @param y_batch A factor vector of response variables for the current batch.
+    #' @param m A matrix of the first moment estimates.
+    #' @param v A matrix of the second moment estimates.
+    #' @param beta1 The exponential decay rate for the first moment estimates.
+    #' @param beta2 The exponential decay rate for the second moment estimates.
+    #' @param learning_rate The learning rate for the optimizer.
+    #' @param epsilon A small constant for numerical stability.
+    #' @param i The current iteration number.
+    #' @param coefficients A matrix of current coefficients.
+    #'
+    #' @return A list containing the updated coefficients, first moment estimates (m), second moment estimates (v), and the loss value.
     adam_optimizer = function(X_batch, y_batch, m, v, beta1, beta2, learning_rate, epsilon, i, coefficients) {
       # Encode the response variable 
       unique_classes <- levels(y_batch)
@@ -268,7 +309,31 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       return(list(coefficients = coefficients, m = m, v = v, loss = loss))
     },
 
-    # SGD Optimizer Function
+    #' @description This function performs a single step of Stochastic Gradient Descent (SGD) optimization for multinomial logistic regression.
+    #' @param X_batch A matrix of input features for the current batch.
+    #' @param y_batch A factor vector of target labels for the current batch.
+    #' @param learning_rate A numeric value representing the learning rate for SGD.
+    #' @param coefficients A matrix of current coefficients for the logistic regression model.
+    #' @return A matrix of updated coefficients after performing one step of SGD.
+    #' @details
+    #' The function first converts the target labels `y_batch` into a one-hot encoded matrix. It then computes the linear model as:
+    #' \deqn{Z = X_{batch} \cdot \beta}
+    #' where \eqn{X_{batch}} is the input feature matrix and \eqn{\beta} are the coefficients.
+    #' 
+    #' The probabilities are computed using the softmax function:
+    #' \deqn{P = \text{softmax}(Z)}
+    #' 
+    #' The error is calculated as the difference between the predicted probabilities and the one-hot encoded target labels:
+    #' \deqn{\text{error} = P - \text{one\_hot\_y}}
+    #' 
+    #' The gradient of the loss with respect to the coefficients is computed as:
+    #' \deqn{\nabla L = \frac{1}{N} X_{batch}^T \cdot \text{error}}
+    #' where \eqn{N} is the number of samples in the batch.
+    #' 
+    #' Finally, the coefficients are updated using the gradient and the learning rate:
+    #' \deqn{\beta = \beta - \text{learning\_rate} \cdot \nabla L}
+    #' 
+    #' @export
     sgd_optimizer = function(X_batch, y_batch, learning_rate, coefficients) {
       unique_classes <- levels(y_batch)
       one_hot_y <- self$one_hot_encode(y_batch, unique_classes)
@@ -293,7 +358,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @examples
     #' # Assuming `model` is an instance of the logistic regression model
     #' loss <- model$validate(X_val, y_val, unique_classes)
-    #' }
     #' @export
     validate = function(X_val, y_val, unique_classes) {
       val_probabilities <- self$softmax(X_val %*% self$coefficients)
@@ -303,15 +367,22 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     },
 
     
-    #' @description Computes the softmax of the input matrix.
+    #' @description Computes the softmax of the input matrix. The softmax function is used to convert the linear model outputs into class probabilities, projecting them into the range [0, 1].
+    #' @details The softmax function is defined as:
+    #' \deqn{softmax(z_i) = \frac{e^{z_i}}{\sum_{j} e^{z_j}}}
+    #' where \(z_i\) is the \(i\)-th element of the input matrix \(z\).
     #' @param z A matrix of linear model outputs.
     #' @return A matrix of softmax probabilities for each class.
+    #' @examples
+    #' # Assuming `z` is a matrix of linear model outputs
+    #' probabilities <- softmax(z)
+    #' @export
     softmax = function(z) {
       exp_z = exp(z - apply(z, 1, max))  # Subtract max per row to prevent overflow
       return(exp_z / rowSums(exp_z))
     },
     
-    #' @description One-hot encodes the response variable.
+    #' @description One-hot encodes the response variable, converting it into a binary matrix. Each row corresponds to a sample, and each column corresponds to a class label.
     #' @param y A vector representing the response variable.
     #' @param unique_classes A vector of unique class labels.
     #' @return A binary matrix where each row corresponds to a sample, and each column corresponds to a class.
@@ -325,8 +396,10 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     },
 
     
-    #' @description Predicts the class labels for new data.
+    #' @description Predicts the class labels for new data. The function calculates logits and converts them into class probabilities using the softmax function.
+    #' It then returns the class with the highest probability for each sample.
     #' @param X A data frame or matrix of predictors, where rows are samples and columns are features.
+    #' 
     #' @return A vector of predicted class labels for each sample.
     predict = function(X) {
       X <- cbind(1, X)  # Add intercept term
@@ -338,12 +411,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       return(apply(probabilities, 1, which.max))  # Convert back to 0 and 1 instead of 1 and 2
     },
     
-    #' @description This function calculates the importance of each feature based on the absolute value of the coefficients.
+    #' @description This function calculates the importance of each feature based on the absolute value of the coefficients. It averages the absolute coefficients across all classes and sorts them in descending order.
     #' @return A vector of feature importance scores, sorted in descending order.
-    #' @examples
-    #' \dontrun{
-    #' model$var_importance()
-    #' }
     #' @export
     var_importance = function() {
       coef_matrix <- abs(self$coefficients[-1, ])  # Exclure l'intercept
@@ -364,7 +433,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     },
 
 
-    #' @description This function plots the loss history to visualize the convergence of the loss function over iterations.
+    #' @description This function plots the loss history to visualize the convergence of the loss function over iterations. 
     #' @details The function checks if the loss history is available and non-empty. If the loss history is empty, it stops and prompts the user to run the 'fit' method first. Otherwise, it plots the loss history.
     #' @return A plot showing the convergence of the loss function over iterations.
     #' @examples
@@ -384,7 +453,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
            xlab = "Iterations", ylab = "Loss")
     },
 
-    #' @description This function calculates and plots the ROC AUC for the model predictions.
+    #' @description This function calculates and plots the ROC AUC for the model predictions. It uses the One vs All strategy to calculate the ROC AUC for each class and plots the ROC curve for each class.
     #' @param X_test A data frame or matrix containing the test features.
     #' @param y_test A vector containing the true labels for the test data.
     #' @param probabilities A matrix of class probabilities for the test data. If not provided, the model will predict probabilities using the test features.
@@ -440,22 +509,23 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     
     #' @description Displays the hyperparameters of the trained model.
     #' @details This function prints out the hyperparameters of the model, including the optimizer, learning rate, number of iterations, and loss function. If the optimizer is "adam", it also prints out the Adam-specific parameters: Beta1, Beta2, and Epsilon.
+    #' It will also print out the regularization method, batch size, and early stopping parameters.
     #' @return None. This function is used for its side effect of printing the model's hyperparameters.
     #' @examples
     #' \dontrun{
     #' model$summary()
     #' }
-    # Paramètres du modèle
     summary = function() {
-      
-
-      # En attendant d'avoir le print
       # Model Hyperparameters
       cat("\n=== Model Hyperparameters ===\n")
       cat("Optimizer: ", self$optimizer, "\n")
       cat("Learning Rate: ", self$learning_rate, "\n")
       cat("Number of Iterations: ", self$num_iterations, "\n")
-      cat("Loss Function: ", self$loss_name, "\n")  
+      cat("Loss Function: ", self$loss_name, "\n")
+      cat("Early Stopping: ", ifelse(self$use_early_stopping, "Enabled", "Disabled"), "\n")
+      cat("Patience: ", self$patience, "\n")
+      cat("Regularization: ", self$regularization, "\n")
+      cat("Batch Size: ", self$batch_size, "\n")
       if (self$optimizer == "adam") {
         cat("Beta1 (Adam): ", self$beta1, "\n")
         cat("Beta2 (Adam): ", self$beta2, "\n")
@@ -524,8 +594,9 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       
 
     #' @description This function computes the log loss, also known as logistic loss or cross-entropy loss, 
-    #' between the true labels and the predicted probabilities.
-    #'
+    #' between the true labels and the predicted probabilities. The log loss is calculated as:
+    #' \deqn{-\frac{1}{N} \sum_{i=1}^{N} [y_i \log(p_i) + (1 - y_i) \log(1 - p_i)]}
+    #' where \eqn{N} is the number of samples, \eqn{y_i} is the true label of the i-th sample, and \eqn{p_i} is the predicted probability of the i-th sample.
     #' @param y_true A numeric vector of true labels.
     #' @param y_pred A numeric vector of predicted probabilities.
     #' @return A numeric value representing the log loss.
@@ -534,7 +605,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' y_pred <- c(0.9, 0.1, 0.8, 0.2)
     #' log_loss(y_true, y_pred)
     #' @export
-    # LOSS FUNCTIONS
     log_loss = function(y_true, y_pred) {
       epsilon <- 1e-15  # Small value to prevent log(0)
       y_pred <- pmax(pmin(y_pred, 1 - epsilon), epsilon) 
@@ -559,7 +629,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' y_pred <- c(0.9, 0.1, 0.8, 0.2)
     #' mse_loss(y_true, y_pred)
     #' @export
-    #'
     mse_loss = function(y_true, y_pred) {
       0.5 * mean((y_true - y_pred)^2)
     },
@@ -579,19 +648,14 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     },
 
 
-    #' Select Important Variables Based on Coefficients
-    #'
-    #' This function selects the most important variables based on the absolute value of the coefficients
-    #' from a logistic regression model. It calculates the importance of each feature, ranks them, and 
-    #' selects the top `num_variables` features.
-    #'
-    #' @param num_variables An integer specifying the number of top variables to select.
+    #' @description Displays the selected variables based on their importance scores.
+    #' @param num_variables An integer specifying the number of top variables to display.
+    #' @details This function calculates the importance of each feature based on the absolute value of the coefficients. It sums the absolute coefficients for each feature and selects the top 'num_variables' features based on their importance scores.
+    #' @return None. This function is used for its side effect of printing the selected variables.
     #' @examples
     #' \dontrun{
-    #'   selected_vars <- select_variables(5)
-    #'   print(selected_vars)
+    #' model$select_variables(num_variables = 5)
     #' }
-    #' @export
     select_variables = function(num_variables) {
       # Calculate the importance of each feature based on the absolute value of the coefficients
       coef_matrix <- abs(self$coefficients[-1, ])  # Exclude the intercept term
@@ -615,6 +679,17 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @return A list containing:
     #'   - `penalty`: The computed penalty term to be added to the loss function.
     #'   - `regularized_gradient`: The gradient matrix adjusted for regularization.
+    #' @details The ElasticNet regularization combines L1 and L2 penalties. The penalty term is computed as:
+    #' \deqn{penalty = \frac{\lambda}{2} \left( (1 - p) \sum_{j=1}^{n} \beta_j^2 + p \sum_{j=1}^{n} |\beta_j| \right)}
+    #' where \(\lambda\) is the regularization parameter, \(p\) is the mixing parameter, \(\beta_j\) are the model coefficients, and \(n\) is the number of coefficients.
+    #' 
+    #' For Ridge regularization, the penalty term is computed as:
+    #' \deqn{penalty = \frac{1}{2} \sum_{j=1}^{n} \beta_j^2}
+    #' where \(\beta_j\) are the model coefficients.
+    #' 
+    #' For Lasso regularization, the penalty term is computed as:
+    #' \deqn{penalty = \frac{1}{2} \sum_{j=1}^{n} |\beta_j|}
+    #' where \(\beta_j\) are the model coefficients.
     apply_regularization = function(gradient, coefficients, p = 0.5) {
       penalty <- 0 
       regularized_gradient <- gradient 
