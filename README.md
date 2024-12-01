@@ -206,6 +206,10 @@ model$var_importance()
 
 # Display the loss plot
 model$plot_loss()
+
+# Display n(5) best variables
+model$select_variables(5)
+
 ```
 
 <h2 id="output">📊 Example Output</h2>

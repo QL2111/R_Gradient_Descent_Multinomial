@@ -71,6 +71,9 @@ model$plot_loss()
 # Importance des variables
 model$var_importance()
 
+# # 5 meilleures variables
+# model$select_variables(5)
+
 # test 
 # print(model$predict_proba(X_test_matrix))
 
