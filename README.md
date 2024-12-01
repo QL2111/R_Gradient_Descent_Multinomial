@@ -11,7 +11,7 @@
 5. [Multinomial Target Handling](#Multinomial Target Handling)
 6. [Features and Methods](#features-and-methods)  
 7. [Contributing and Support](#contributing-and-support)
-8. 
+
 ## 🧩 **Introduction**
 
 The `LogisticRegressionMultinomial` class provides a flexible and powerful solution to fit multinomial logistic regression models. The `DataPreparer` class offers advanced data preprocessing, including handling missing values, detecting and removing outliers, and encoding categorical variables.
