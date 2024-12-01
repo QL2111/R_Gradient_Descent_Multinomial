@@ -235,7 +235,7 @@ Evolution of the Loss :
 ROC :
 ![ROC](/images/ROC.jpg)
 Variables Importances :
-![Variables Importances](/images/var_importances.jpg)
+![Variables Importances](/images/var_importance.jpg)
 
 
 <h2 id="multinomial-target-handling">🎯 Multinomial Target Handling</h2>
