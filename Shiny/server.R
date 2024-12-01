@@ -154,6 +154,8 @@ server <- function(input, output, session) {
     # Afficher les métriques
     output$metrics_output <- renderPrint({
       req(results$accuracy)
+      req(model())
+      model$print()
       cat("Accuracy: ", results$accuracy, "\n")
     })
     
