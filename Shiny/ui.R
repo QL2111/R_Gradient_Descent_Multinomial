@@ -77,7 +77,7 @@ ui <- dashboardPage(
             title = "Métriques", width = 6,
             solidHeader = TRUE, verbatimTextOutput("metrics_output")
           ),
-
+          
         )
       ),
       tabItem(
@@ -91,8 +91,8 @@ ui <- dashboardPage(
             title = "ROC AUC", width = 6,
             solidHeader = TRUE, plotOutput("roc_plot"), verbatimTextOutput("auc_values")
           )
-          )
         )
+      )
       
     )
   )
