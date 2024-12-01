@@ -21,7 +21,7 @@ This project implements a multinomial logistic regression model using gradient d
 https://docs.google.com/document/d/156TOP_Mk1kutaAZslE7FNKdw-8WSfL8yQg_orYBqDE0/edit?tab=t.0
 
 ## 🛠️ **Installation**
-In order to use this package, it is recommend to pass with github
+In order to use this package, it is recommend to use `devtools::install_github`
 ```r
 library(devtools)
 devtools::install_github("QL2111/R_Gradient_Descent_Multinomial")
@@ -47,9 +47,6 @@ library(devtools)
 install.packages([Specify your path here], repos = NULL, type = "source")
 
 ```
-
-On va tester en utilisant le jeu de données : ? Credit card ou student performance ou autres?
-
 
 
 ## 🔧 Package Architecture
@@ -138,6 +135,7 @@ The `LogisticRegressionMultinomial` class is designed to train multinomial logis
    * Display feature importance and the overall model summary.
 
 ## 💻 Usage Example
+We will test this pacjage with the `IRIS` dataset
 ```r
 # Load the package
 library(LogisticRegressionMultinomial)
@@ -177,11 +175,11 @@ model$var_importance()
 ```
 
 
-## Multinomial Target Handling
+## 🎯 Multinomial Target Handling
 
 - Cross Entropy
 
-## Authors and License
+## ⚖️ Authors and License
 This project was developed by AWA KARAMOKO, TAHINARISOA DANIELLA RAKOTONDRATSIMBA, QUENTIN LIM as part of the Master 2 SISE program (2024-2025) at Lyon 2 Université Lumière.
 Distributed under the MIT License.
 
