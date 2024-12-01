@@ -219,7 +219,7 @@ model$select_variables(5)
 
 ```
 <h2 id="Rshiny App">✔️ Rshiny App</h2>
-
+Pour lancer l'application, ..............
 
 <h2 id="output">📊 Example Output</h2>
 
