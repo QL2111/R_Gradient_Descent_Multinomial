@@ -87,11 +87,9 @@ model$var_importance()
 ```
 
 ```{r}
-
-```
-
-```{r}
-
+# Afficher les résultats
+print("Variables sélectionnées :")
+model$select_variables(5)
 ```
 
 

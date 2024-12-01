@@ -624,8 +624,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     },
 
 
-    #' Select Important Variables Based on Coefficients
-    #'
     #' This function selects the most important variables based on the absolute value of the coefficients
     #' from a logistic regression model. It calculates the importance of each feature, ranks them, and 
     #' selects the top `num_variables` features.
@@ -652,10 +650,10 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       for (i in 1:length(top_variables)) {
         cat(top_variables[i], "\n")
       }
-      
-      # Return the selected features as a subset of the original data
-      return(top_variables)
+  
     },
+    
+    
 
     #' @description Applies regularization to the gradient and computes the penalty term for the loss function.
     #' @param gradient A matrix of gradients with respect to the model coefficients.

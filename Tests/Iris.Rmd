@@ -97,7 +97,7 @@ model$plot_loss()
 
 ```{r}
 #tester la fonction select_variables()
-model$select_variables(4)
+model$variable_selection()
 ```
 
 
