@@ -16,7 +16,7 @@
 
 The `LogisticRegressionMultinomial` class provides a flexible and powerful solution to fit multinomial logistic regression models. The `DataPreparer` class offers advanced data preprocessing, including handling missing values, detecting and removing outliers, and encoding categorical variables.
 
-## Descriptions
+## 🤖 Descriptions
 This project implements a multinomial logistic regression model using gradient descent, encapsulated in a customizable R package. The package supports mixed predictor variables (qualitative and quantitative) and can be installed directly from GitHub. An interactive Shiny application is included, enabling simplified exploration of the package's features and results.
 https://docs.google.com/document/d/156TOP_Mk1kutaAZslE7FNKdw-8WSfL8yQg_orYBqDE0/edit?tab=t.0
 
