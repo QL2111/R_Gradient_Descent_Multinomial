@@ -3,6 +3,10 @@ library(DT)
 library(Metrics)  # Pour calculer l'AUC
 library(readxl)  # Pour lire les fichiers XLSX
 library(pROC)
+source("../R/DataPreparer.R")
+library(R6)
+source("../R/LogisticRegressionMultinomial.R")
+
 
 server <- function(input, output, session) {
   

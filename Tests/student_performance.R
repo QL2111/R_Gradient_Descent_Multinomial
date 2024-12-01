@@ -71,7 +71,7 @@ model$summary()
 model$plot_loss()
 
 model$print(X_test_matrix, y_test_numeric)
-# print("Variable Importance:")
-# model$var_importance()
+print("Variable Importance:")
+model$var_importance()
 
 # nolint end
