@@ -2,46 +2,43 @@
 # Générer la documentation
 # roxygen2::roxygenise()
 
-# 14/11 -> Le test sur credit_card_rmd a montré que le problème vient du modèle et non du préprocessing #### OK
-
 # ==============================================================TODO=====================================================
 #' Rshiny -> Utiliser une librairie, retaper
 #' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS, il faut tester avec un jeu de donnée plus dur, car sur student performance, le F1 est déjà à 1
-#' Test Package # Awa -> Quentin #### OK
-#' Faire mini batch # Quentin (Descente de gradient) Apparement que du bonus ?
-#' Revoir différence entre var select et var importance # Awa 
-#' Changer les levels ? Répréesentation en 1,2,3 mais plus tard garder les labels? # Quentin # Casse les autres fonctions -> Laisser pour l'isntatn
-#' Mettre un Imputer sur le datapreparer, Missing values aussi à mettre dans le datapreparer et outliers avant le scaler # Quentin ### OK
-#' ReadMe Github 
-#' Video explicative(tuto) (si package ne marche pas)
-#' legends (nom des classes) auc PLOT # Quentin (à voir si on garde ? Rshiny)
-#' Améliroer le roc AUC dans shiny(éviter de calculer 2 fois) # Quentin
-#' #' Outliers ? #Quentin ### OK
+
+#' Faire mini batch # Quentin (Descente de gradient)
+#' Sortie graphique var importances(barplot) # Awa
+#' Pseudo code # Awa
+#' ReadMe Github  # Quentin
 #' Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation + early stopping # Daniella
-#' help # Awa -> Quentin #### OK
 #' SMOTE # Quentin
 #' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
-#' IMPORTER
+#' Documentation
 #' Peut-être ne pas utiliser caret() + MLmetrics + pROC +  
+#' LaTeX # Awa
 #' 
 #' 
 #' #' revoir SGD
 #' #' FIT REGRESSION LOGISTIQUE VOIR STRATEGIE Mini Batch(nb paramètre de l'algorithme) au lieu de Batch Gradient Descent(Tout l'ensemble de données) 
 #' ==============================================================BONUS=====================================================
-#' Mettre en image Docker # Awa
-#' Améliorer SGD Optimizer # Awa
+#' Améliorer SGD Optimizer # Awa #### OK
 #' Implémenter des objets pertinents que le model peut retourner
 #' #' Paralleliser les calculs
 #' #' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles,  #### EN COURS + de champs possibles ?
 
 #' 
 #' ==============================================================DONE=====================================================
+#' #' Test Package # Awa -> Quentin #### OK
+#' #' #' Outliers ? #Quentin ### OK
+#' #' help # Awa -> Quentin #### OK
+#' #' Mettre en image Docker # Awa #### OK
+#'Mettre un Imputer sur le datapreparer, Missing values aussi à mettre dans le datapreparer et outliers avant le scaler # Quentin ### OK
 #' #' Ajouter var select # Awa #### à tester - Quentin #### OK -> pas de différences avec var importance ? 
-#' #' #' Incorporer AFDM dans data preparer # Quentin  ncp pour le nombre de dimensions à garder(variables explicatives cumulé>95%) # Quentin #### OK MAIS accuracy faible pour student performance
+#' #' Incorporer AFDM dans data preparer # Quentin  ncp pour le nombre de dimensions à garder(variables explicatives cumulé>95%) # Quentin #### OK MAIS accuracy faible pour student performance
 #' #' Exportation en PMML # Daniella ### OK
-#' #' #' Analyse Factorielle (Plus de dimension) # Quentin ### OK
+#' #' Analyse Factorielle (Plus de dimension) # Quentin ### OK
 #' #' Ajouter régularisation + export PMML dans LogisticRegressionMultinomial dans LogistRegression.R # Quentin #### OK
-#' #' #' # Implémenter analyse factorielle dans le datapreparer + tester avec studentperformance # Quentin   #### OK
+#' #' Implémenter analyse factorielle dans le datapreparer + tester avec studentperformance # Quentin   #### OK
 #' #' Device model mauvais test -> essayer avec une autre variable cible(User Behavior classification pour voir si l'accuracy monte) # Awa #### OK
 #' #' Tester Analyse factorielle multiclass tester avec student_performancce + Iris + JEU DE DONNEES avec beaucoup de col # Awa Iris + StudentPerformance # OK
 #' #' intégrer le train/test split dans le datapreparer  + stratify # Quentin ### OK
@@ -589,7 +586,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' selects the top `num_variables` features.
     #'
     #' @param num_variables An integer specifying the number of top variables to select.
-    #' @return A character vector containing the names of the selected top variables.
     #' @examples
     #' \dontrun{
     #'   selected_vars <- select_variables(5)
@@ -610,9 +606,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       for (i in 1:length(top_variables)) {
         cat(top_variables[i], "\n")
       }
-      
-      # Return the selected features as a subset of the original data
-      return(top_variables)
     },
 
     #' @description Applies regularization to the gradient and computes the penalty term for the loss function.
