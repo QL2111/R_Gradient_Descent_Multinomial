@@ -210,11 +210,17 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
           X_batch <- X_train[start_idx:end_idx, , drop = FALSE]
           y_batch <- y_train[start_idx:end_idx]
           
-          # Update coefficients with Adam optimizer
-          result <- self$adam_optimizer(X_batch, y_batch, m, v, self$beta1, self$beta2, self$learning_rate, self$epsilon, i, self$coefficients)
-          self$coefficients <- result$coefficients
-          m <- result$m
-          v <- result$v
+          # Update coefficients with the selected optimizer
+          if (self$optimizer == "adam") {
+            result <- self$adam_optimizer(X_batch, y_batch, m, v, self$beta1, self$beta2, self$learning_rate, self$epsilon, i, self$coefficients)
+            self$coefficients <- result$coefficients
+            m <- result$m
+            v <- result$v
+          } else if (self$optimizer == "sgd") {
+            self$coefficients <- self$sgd_optimizer(X_batch, y_batch, self$learning_rate, self$coefficients)
+          } else {
+            stop("Invalid optimizer. Choose 'adam' or 'sgd'.")
+          }
         }
         
         # Validation set for early stopping
@@ -263,6 +269,22 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       coefficients <- coefficients - learning_rate * m_hat / (sqrt(v_hat) + epsilon)
       
       return(list(coefficients = coefficients, m = m, v = v, loss = loss))
+    },
+
+    # SGD Optimizer Function
+    sgd_optimizer = function(X_batch, y_batch, learning_rate, coefficients) {
+      unique_classes <- levels(y_batch)
+      one_hot_y <- self$one_hot_encode(y_batch, unique_classes)
+      
+      # Compute probabilities and gradients
+      linear_model <- X_batch %*% coefficients
+      probabilities <- self$softmax(linear_model)
+      error <- probabilities - one_hot_y
+      gradient <- t(X_batch) %*% error / nrow(X_batch)
+      
+      # Update coefficients with SGD
+      coefficients <- coefficients - learning_rate * gradient
+      return(coefficients)
     },
 
 
@@ -548,133 +570,6 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     # mse_loss = function(y_true, y_pred) { # MSE MULTINOMIALE?
     #   0.5 * sum((y_true - y_pred)^2)
     # }
-
-
-    #' @description This function performs optimization using the Adam algorithm to update the coefficients of a multinomial logistic regression model.
-    #' @param X_train Matrix of training data.
-    #' @param y_train Vector of training labels.
-    #' @param X_val Matrix of validation data for early stopping.
-    #' @param y_val Vector of validation labels for early stopping.
-    #' @param unique_classes Vector of unique class labels.
-    #' @param num_samples Number of samples in the training data.
-    #' @param num_features Number of features in the training data.
-    #' @param num_classes Number of unique classes.
-    #' @param best_loss Best validation loss observed so far.
-    #' @param patience_counter Counter for the number of iterations without improvement in validation loss.
-    #' @return Updated coefficients after performing optimization.
-    #' @details This function uses the Adam optimization algorithm to update the coefficients of a multinomial logistic regression model. It also includes an option for early stopping based on validation loss.
-    #' @examples
-    #' \dontrun{
-    #' # Assuming `model` is an instance of the logistic regression class
-    #' model$adam_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
-    #' }
-    # adam_optimizer = function(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter) {
-    #   m <- matrix(0, nrow = num_features + 1, ncol = num_classes)
-    #   v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
-    #   one_hot_y <- self$one_hot_encode(y_train, unique_classes) 
-
-    #   # Number of mini-batches
-    #   num_batches <- ceiling(num_samples / self$batch_size)
-    #   for (i in 1:self$num_iterations) {
-    #     linear_model <- X_train %*% self$coefficients 
-    #     probabilities <- self$softmax(linear_model)
-    #     # one_hot_y <- self$one_hot_encode(y_train, unique_classes)
-    #     loss <- self$loss_function(one_hot_y, probabilities)
-    #     self$loss_history[i] <- loss
-        
-    #     cat("Iteration:", i, "Loss:", loss, "\n")
-
-    #     error <- probabilities - one_hot_y
-    #     gradient <- t(X_train) %*% error / num_samples
-
-    #     m <- self$beta1 * m + (1 - self$beta1) * gradient
-    #     v <- self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
-        
-    #     m_hat <- m / (1 - self$beta1 ^ i)
-    #     v_hat <- v / (1 - self$beta2 ^ i)
-
-    #     self$coefficients <- self$coefficients - self$learning_rate * m_hat / (sqrt(v_hat) + self$epsilon)
-
-    #     # Early stopping
-    #     if (self$use_early_stopping) {
-    #       val_probabilities <- self$softmax(X_val %*% self$coefficients)
-    #       val_one_hot_y <- self$one_hot_encode(y_val, unique_classes)
-    #       val_loss <- self$loss_function(val_one_hot_y, val_probabilities)
-          
-    #       if (val_loss < best_loss) {
-    #         best_loss <- val_loss
-    #         patience_counter <- 0
-    #       } else {
-    #         patience_counter <- patience_counter + 1
-    #       }
-          
-    #       if (patience_counter >= self$patience) {
-    #         cat("Early stopping at iteration:", i, "with validation loss:", val_loss, "\n")
-    #         break
-    #       }
-    #     }
-    #   }
-    # },
-
-    #' Stochastic Gradient Descent (SGD) Optimizer
-    #'
-    #' This function performs stochastic gradient descent optimization for a multinomial logistic regression model.
-    #'
-    #' @param X_train A matrix of training data features.
-    #' @param y_train A vector of training data labels.
-    #' @param X_val A matrix of validation data features.
-    #' @param y_val A vector of validation data labels.
-    #' @param unique_classes A vector of unique class labels.
-    #' @param num_samples An integer representing the number of training samples.
-    #' @param num_features An integer representing the number of features in the training data.
-    #' @param num_classes An integer representing the number of unique classes.
-    #' @param best_loss A numeric value representing the best validation loss observed.
-    #' @param patience_counter An integer representing the current count of iterations without improvement in validation loss.
-    #' @details
-    #' The function iteratively updates the model's coefficients using the gradient of the loss function with respect to the coefficients.
-    #' It also supports early stopping based on validation loss to prevent overfitting.
-    #'
-    #' @examples
-    #' \dontrun{
-    #' sgd_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
-    #' }
-    #'
-    sgd_optimizer = function(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter) {
-      for (i in 1:self$num_iterations) {
-        linear_model <- X_train %*% self$coefficients
-        probabilities <- self$softmax(linear_model)
-        one_hot_y <- self$one_hot_encode(y_train, unique_classes)
-        loss <- self$loss_function(one_hot_y, probabilities)
-        self$loss_history[i] <- loss
-        
-        cat("Iteration:", i, "Loss:", loss, "\n")
-
-        error <- probabilities - one_hot_y
-        gradient <- t(X_train) %*% error / num_samples
-
-        self$coefficients <- self$coefficients - self$learning_rate * gradient
-
-        # Early stopping
-        if (self$use_early_stopping) {
-          val_probabilities <- self$softmax(X_val %*% self$coefficients)
-          val_one_hot_y <- self$one_hot_encode(y_val, unique_classes)
-          val_loss <- self$loss_function(val_one_hot_y, val_probabilities)
-          
-          if (val_loss < best_loss) {
-            best_loss <- val_loss
-            patience_counter <- 0
-          } else {
-            patience_counter <- patience_counter + 1
-          }
-          
-          if (patience_counter >= self$patience) {
-            cat("Early stopping at iteration:", i, "with validation loss:", val_loss, "\n")
-            break
-          }
-        }
-      }
-    },
-
 
     #' @description Predicts the class probabilities for new data.
     #' @param X A data frame or matrix of predictors, where rows are samples and columns are features.
