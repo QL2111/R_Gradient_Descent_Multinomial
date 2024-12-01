@@ -234,5 +234,6 @@ You can certainly contribute by working on these topics :
 - Implementing SMOTE (Synthetic Minority Over-sampling Technique) for handling imbalanced datasets.
 - Parallelizing the computations for the mini-batch approach to improve training efficiency and speed.
 - Enhancing the visualization capabilities for model evaluation.
-- Improve the UI
+- Improve the UI.
+- Continue the interconnection between the package and the Rshiny using Docker.
 
