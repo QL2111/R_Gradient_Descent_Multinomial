@@ -64,6 +64,8 @@ The `DataPreparer` class is responsible for preparing the input data for the log
 | Field                | Description                                                                                   |
 |----------------------|-----------------------------------------------------------------------------------------------|
 | `use_factor_analysis` | Logical. Indicates whether to apply factor analysis for both quantitative and qualitative variables.|
+| `cumulative_var_threshold` | The threshold for cumulative variance explained by factor analysis. Default is 90.|
+
 
 #### **Public Methods**
 
