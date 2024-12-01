@@ -21,30 +21,30 @@ The `LogisticRegressionMultinomial` class provides a flexible and powerful solut
 
 <h2 id="descriptions">🤖 Descriptions</h2>
 
-This project implements a multinomial logistic regression model using gradient descent, encapsulated in a customizable R package. The package supports mixed predictor variables (qualitative and quantitative) and can be installed directly from GitHub. An interactive Shiny application is included, enabling simplified exploration of the package's features and results. By default is not dataset is loaded it will load the `Iris`dataset. The DataPreparer can then support the data preparation, once the data is ready, the LogisticRegressionMultinomial model can fit the data.
+This project implements a multinomial logistic regression model using gradient descent, encapsulated in a customizable R package. The package supports mixed predictor variables (qualitative and quantitative) and can be installed directly from GitHub. An interactive Shiny application is included, enabling simplified exploration of the package's features and results. By default if no dataset is loaded, it will load the `Iris`dataset. The DataPreparer can then support the data preparation, once the data is ready, the LogisticRegressionMultinomial model can fit the data.
 
 <h2 id="installation">🛠️ Installation</h2>
 
-In order to use this package, it is recommend to use `devtools::install_github`
+In order to use this package, it is recommend to use `devtools::install_github`.
 ```r
 library(devtools)
 devtools::install_github("QL2111/R_Gradient_Descent_Multinomial")
 
 ```
 
-We will now load the library M2LogReg
+We will now load the library M2LogReg.
 ```r
 library(M2LogReg)
 ```
 
-Let's check if it's correctly loaded
+Let's check if it's correctly loaded.
 
 ```r
 help("DataPreparer")
 ```
 ![Extrait Documentation DataPreparer](/images/Extrait_doc_DataPreparer.png)
 
-We can also support the installation with an exported file available on :"Mettre lien du google drive".
+We also support installation with an exported file available on [Google Drive](https://drive.google.com/drive/folders/1uZ6iTvHueYE0HFiWNZPQYNUN59fZ8HGi?usp=sharing).
 
 ```r
 library(devtools)
@@ -127,12 +127,12 @@ The `LogisticRegressionMultinomial` class is designed to train multinomial logis
 <h2 id="data-flow">🏗️ Data Flow</h2>
 
 1. **Data Loading and Preparation**  
-:
+
    * Detect and removes outliers with the chosen threshold, using the IQR method.  
    * Handle missing values through imputation (median for quantitative variables and mode for categorical variables).  
-   * Train/Test split with the option to stratify
-   * Use ont-hot encoding of the categoricals values
-   * Standardization of the numericals values
+   * Train/Test split with the option to stratify.
+   * Use ont-hot encoding of the categoricals values.
+   * Standardization of the numericals values.
    * Use a factor analysis if specified and only keep the number of the dimensions that reach a threshold of cumulative variance.
 
 2. **Model Training**  
@@ -142,7 +142,7 @@ The `LogisticRegressionMultinomial` class is designed to train multinomial logis
    * Train the model using gradient descent optimization methods such as Adam or Stochastic Gradient Descent (SGD).
    * The early stopping approach will use a validation set and stop if there is no improvement in the loss for a certain number of iterations in a row(patience counter).
    * The Adam Optimizer use a mini-batch approach.
-   * We will use a regularization approach to avoid overfitting (L1, L2, or ElasticNet)
+   * We will use a regularization approach to avoid overfitting (L1, L2, or ElasticNet).
    * Track the loss function at each iteration and store it in `loss_history`.
 
 3. **Prediction and Evaluation**  
@@ -155,6 +155,7 @@ The `LogisticRegressionMultinomial` class is designed to train multinomial logis
 <h2 id="usage-example">💻 Usage Example</h2>
 
 We will test this package with the `IRIS` dataset
+
 ```r
 
 # Load example data
