@@ -15,14 +15,16 @@
 9. [Authors and License](#authors-and-license)
 10. [Contributing and Support](#contributing-and-support)
 
-<h2 id="introduction">🧩 **Introduction**</h2>
+<h2 id="introduction">🧩 Introduction</h2>
 
 The `LogisticRegressionMultinomial` class provides a flexible and powerful solution to fit multinomial logistic regression models. The `DataPreparer` class offers advanced data preprocessing and should be used in accordance with the `LogistRegressionMultinomial` class. This project is in accordance with the courses "Programmation en R" dispensed in Lyon 2 Université Lumière Master 2 -SISE.
 
-<h2 id="descriptions">🤖 **Descriptions**</h2>
-This project implements a multinomial logistic regression model using gradient descent, encapsulated in a customizable R package. The package supports mixed predictor variables (qualitative and quantitative) and can be installed directly from GitHub. An interactive Shiny application is included, enabling simplified exploration of the package's features and results.
+<h2 id="descriptions">🤖 Descriptions</h2>
 
-<h2 id="installation">🛠️ **Installation**</h2>
+This project implements a multinomial logistic regression model using gradient descent, encapsulated in a customizable R package. The package supports mixed predictor variables (qualitative and quantitative) and can be installed directly from GitHub. An interactive Shiny application is included, enabling simplified exploration of the package's features and results. By default is not dataset is loaded it will load the `Iris`dataset. The DataPreparer can then support the data preparation, once the data is ready, the LogisticRegressionMultinomial model can fit the data.
+
+<h2 id="installation">🛠️ Installation</h2>
+
 In order to use this package, it is recommend to use `devtools::install_github`
 ```r
 library(devtools)
@@ -123,19 +125,30 @@ The `LogisticRegressionMultinomial` class is designed to train multinomial logis
 <h2 id="data-flow">🏗️ Data Flow</h2>
 
 1. **Data Loading and Preparation**  
+:
+   * Detect and removes outliers with the chosen threshold, using the IQR method.  
    * Handle missing values through imputation (median for quantitative variables and mode for categorical variables).  
-   * Detect and remove outliers using the IQR method.  
-   * Encode categorical variables using either one-hot encoding or factor analysis, depending on the user's preference.
+   * Train/Test split with the option to stratify
+   * Use ont-hot encoding of the categoricals values
+   * Standardization of the numericals values
+   * Use a factor analysis if specified and only keep the number of the dimensions that reach a threshold of cumulative variance.
 
 2. **Model Training**  
-   * Initialize model coefficients and set hyperparameters such as learning rate, number of iterations, and regularization method.  
-   * Train the model using gradient descent optimization methods such as Adam or Stochastic Gradient Descent (SGD).  
+   * Initialize model coefficients and set hyperparameters such as learning rate, number of iterations, loss function, early stopping, patience values, batch size and regularization method.  
+   * The loss function ny default is the Cross Entropy Loss.
+   * We will use softmax to project the values.
+   * Train the model using gradient descent optimization methods such as Adam or Stochastic Gradient Descent (SGD).
+   * The early stopping approach will use a validation set and stop if there is no improvement in the loss for a certain number of iterations in a row(patience counter).
+   * The Adam Optimizer use a mini-batch approach.
+   * We will use a regularization approach to avoid overfitting (L1, L2, or ElasticNet)
    * Track the loss function at each iteration and store it in `loss_history`.
 
 3. **Prediction and Evaluation**  
    * Predict the class labels or probabilities for new data using `predict()` or `predict_proba()`.  
-   * Evaluate model performance using confusion matrices, ROC curves, and AUC values for each class.  
-   * Display feature importance and the overall model summary.
+   * Evaluate model performance using confusion matrices, F1-score and accuracy.
+   * We can also plot the evoluation of the loss function, the ROC and AUC values for each class.
+   * Display feature importance with a barplot.
+   * The user can also export the model in a pmml format with the coefficients.
 
 <h2 id="usage-example">💻 Usage Example</h2>
 
@@ -192,14 +205,15 @@ model$var_importance()
 model$plot_loss()
 ```
 
-<h2 id="output">📊 Output</h2>
+<h2 id="output">📊 Example Output</h2>
 
 Mettre les graphiques de loss, auc, var importances
 Montrer le summary et le print depuis le RShiny(capture d'écran)
 
 <h2 id="multinomial-target-handling">🎯 Multinomial Target Handling</h2>
 
-- Cross Entropy
+ One of the challenge of this class was to support Multinomial prediction.
+ Unlike binary logistic regression, which predicts probabilities for only two classes, this class computes probabilities across multiple classes by converting the logits into normalized probabilities. It uses one-hot encoding to represent the target variable and minimizes a `multinomial cross-entropy loss (log-loss)` during training. The class supports advanced optimization methods like Adam and Stochastic Gradient Descent (SGD), allowing it to efficiently update the coefficients for all classes simultaneously. This enables the model to learn complex decision boundaries across multiple classes, making it well-suited for multinomial classification tasks.
 
 <h2 id="authors-and-license">⚖️ Authors and License</h2>
 
@@ -209,7 +223,9 @@ Distributed under the MIT License.
 <h2 id="contributing-and-support">🤝 Contributing and Support</h2>
 
 Contributions are welcome! Feel free to open an issue or submit a pull request to suggest improvements or report bugs.
-- Parallise the computation
-- SMOTE
-
+You can certainly contribute by working on these topics :
+- Implementing SMOTE (Synthetic Minority Over-sampling Technique) for handling imbalanced datasets.
+- Parallelizing the computations for the mini-batch approach to improve training efficiency and speed.
+- Enhancing the visualization capabilities for model evaluation.
+- Improve the UI
 

@@ -13,6 +13,8 @@ This class is part of a package designed to support data preparation tasks, part
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
 \item{\code{use_factor_analysis}}{Logical. Indicates whether to apply factor analysis for both quantitative and qualitative variables.}
+
+\item{\code{cumulative_var_threshold}}{Numeric. The threshold for cumulative variance explained by factor analysis.}
 }
 \if{html}{\out{</div>}}
 }
@@ -37,13 +39,15 @@ This class is part of a package designed to support data preparation tasks, part
 \subsection{Method \code{new()}}{
 Initializes a new instance of the `DataPreparer` class.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$new(use_factor_analysis = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$new(use_factor_analysis = FALSE, cumulative_var_threshold = 95)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{use_factor_analysis}}{Logical. Set to `TRUE` to enable factor analysis for qualitative variables, `FALSE` for one-hot encoding.}
+
+\item{\code{cumulative_var_threshold}}{Numeric. The threshold for cumulative variance explained by factor analysis. Default is 90.}
 }
 \if{html}{\out{</div>}}
 }

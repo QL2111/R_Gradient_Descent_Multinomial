@@ -14,16 +14,20 @@
 DataPreparer = R6::R6Class("DataPreparer", 
   public = list(
     #' @field use_factor_analysis Logical. Indicates whether to apply factor analysis for both quantitative and qualitative variables.
+    #' @field cumulative_var_threshold Numeric. The threshold for cumulative variance explained by factor analysis.
     use_factor_analysis = FALSE,
+    cumulative_var_threshold = 95,
     
     #' @description Initializes a new instance of the `DataPreparer` class.
     #' @param use_factor_analysis Logical. Set to `TRUE` to enable factor analysis for qualitative variables, `FALSE` for one-hot encoding.
+    #' @param cumulative_var_threshold Numeric. The threshold for cumulative variance explained by factor analysis. Default is 90.
     #' @return A new `DataPreparer` object.
-    initialize = function(use_factor_analysis = FALSE) {
+    initialize = function(use_factor_analysis = FALSE, cumulative_var_threshold = 95) {
       if (!is.logical(use_factor_analysis)) {
         stop("use_factor_analysis must be a logical value (TRUE or FALSE)")
       }
       self$use_factor_analysis <- use_factor_analysis
+      self$cumulative_var_threshold <- cumulative_var_threshold
     },
     
     #' @description Calculates the mode of a vector.
@@ -184,7 +188,7 @@ DataPreparer = R6::R6Class("DataPreparer",
         eig_values = famd_result$eig[, 3]  # Colonne de la variance expliquée cumulée (en pourcentage)
 
         # Trouver le nombre de dimensions nécessaires pour atteindre au moins 90% de la variance expliquée cumulée
-        ncp_index = which(eig_values >= 95)[1]
+        ncp_index = which(eig_values >= self$cumulative_var_threshold)[1]
         
         # Si aucune valeur ne dépasse 90%, garder toutes les dimensions
         if (is.na(ncp_index)) {

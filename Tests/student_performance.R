@@ -17,7 +17,7 @@ data$Access_to_Resources <- as.factor(data$Access_to_Resources)
 # Diviser les données en ensembles d'entraînement et de test
 set.seed(42)  # Pour la reproductibilité
 
-data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+data_prep <- DataPreparer$new(use_factor_analysis = TRUE)
 prepared_data <- data_prep$prepare_data(data, "Access_to_Resources", 0.7, stratify = FALSE, remove_outliers = TRUE, outlier_seuil = 0.10)
 # Check if the proportions are equals
 # print(table(prepared_data$y_train) / length(prepared_data$y_train))
