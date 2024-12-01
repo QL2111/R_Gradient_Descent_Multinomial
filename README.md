@@ -218,13 +218,24 @@ model$plot_loss()
 model$select_variables(5)
 
 ```
-<h2 id="Rshiny App">✔️ Rshiny App</h2>
-Pour lancer l'application, ..............
 
-<h2 id="output">📊 Example Output</h2>
+<h2 id="output">📊 Example Output with R Shiny</h2>
 
-Mettre les graphiques de loss, auc, var importances
-Montrer le summary et le print depuis le RShiny(capture d'écran)
+Data importaion :
+![Extrait Documentation DataPreparer](/images/importation.png)
+Model parameters :
+![Extrait Documentation DataPreparer](/images/param_model.png)
+Preprocessing Parameters
+![Extrait Documentation DataPreparer](/images/param_preprocessing.png)
+Hyperparameters and Metrics :
+![Extrait Documentation DataPreparer](/images/resultats.png)
+Evolution of the Loss :
+![Extrait Documentation DataPreparer](/images/loss.png)
+ROC :
+![Extrait Documentation DataPreparer](/images/ROC.png)
+Variables Importances :
+![Extrait Documentation DataPreparer](/images/var_importances.png)
+
 
 <h2 id="multinomial-target-handling">🎯 Multinomial Target Handling</h2>
 
