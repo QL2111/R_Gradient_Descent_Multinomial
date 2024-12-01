@@ -1,6 +1,5 @@
 # Charger les fichiers de fonctions
 source("R/DataPreparer.R")
-source("R/factor_analysis_mixed.R")
 source("R/LogisticRegressionMultinomial.R")
 
 # Charger les données Iris
@@ -15,17 +14,22 @@ test_data <- iris[-train_indices, ]
 
 # Préparer les données
 data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-prepared_train_data <- data_prep$prepare_data(train_data)
-prepared_test_data <- data_prep$prepare_data(test_data)
+# Vous devez spécifier 'target_col' pour indiquer la variable cible
+prepared_train_data <- data_prep$prepare_data(train_data, target_col = "Species")
+prepared_test_data <- data_prep$prepare_data(test_data, target_col = "Species")
 
-# Séparer les caractéristiques et la variable cible
-X_train <- as.matrix(prepared_train_data[, -1])  # Retirer la première colonne (variable cible)
-y_train <- train_data$Species
+# Vérifier la structure des données préparées
+str(prepared_train_data)
+str(prepared_test_data)
 
-X_test <- as.matrix(prepared_test_data[, -1])  # Retirer la première colonne (variable cible)
-y_test <- test_data$Species
+# Extraire X_train, X_test, y_train, y_test depuis la liste retournée par prepare_data
+X_train <- as.matrix(prepared_train_data$X_train)
+y_train <- prepared_train_data$y_train
 
-# Créer une instance de la classe
+X_test <- as.matrix(prepared_test_data$X_test)
+y_test <- prepared_test_data$y_test
+
+# Créer une instance de la classe LogisticRegressionMultinomial
 model <- LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 1000)
 
 # Ajuster le modèle sur l'ensemble d'entraînement
@@ -44,4 +48,3 @@ cat("Accuracy:", accuracy, "\n")
 # Matrice de confusion pour voir la performance
 confusion_matrix <- table(Predicted = predictions, Actual = as.numeric(y_test))
 print(confusion_matrix)
-
