@@ -7,8 +7,8 @@
 
 #' Faire mini batch # Quentin (Descente de gradient) ### OK
 #' Sortie graphique var importances(barplot) # Awa ### OK
-#' Vérifier qu'il y a tout les returns et examples pour la doc roxygen!!!!!!!
-#' Pseudo code # Awa
+#' Vérifier qu'il y a tout les returns et examples pour la doc roxygen -> Quentin ### Génère des bugs(Internal Server Error, on préfère une version plus simple)
+#' Pseudo code # Awa-> Quentin ### OK
 #' ReadMe Github  # Quentin En cours -> Fixer le Usage Examples
 #' Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation + early stopping # Daniella
 #' SMOTE # Quentin
