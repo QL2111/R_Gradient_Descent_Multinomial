@@ -3,6 +3,8 @@ library(DT)
 library(Metrics)  # Pour calculer l'AUC
 library(readxl)  # Pour lire les fichiers XLSX
 library(pROC)
+library(caret)
+library(MLmetrics)
 
 server <- function(input, output, session) {
   
@@ -24,13 +26,6 @@ server <- function(input, output, session) {
     return(NULL)
   })
   
-  # Mettre à jour la sélection de la variable cible
-  # observe({
-  #   dataset <- data()
-  #   if (!is.null(dataset)) {
-  #     updateSelectInput(session, "target_var", choices = names(dataset), selected = names(dataset)[ncol(dataset)])
-  #   }
-  # })
   # Mettre à jour la sélection de la variable cible
   observe({
     dataset <- data()  # Récupérer les données actuelles
@@ -121,7 +116,8 @@ server <- function(input, output, session) {
       optimizer = input$optimizer,
       regularization = input$regularization,
       patience = input$patience,
-      use_early_stopping = TRUE
+      use_early_stopping = TRUE,
+      batch_size = 32
     )
     
     logistic_model$fit(X_train_matrix, y_train_numeric)
@@ -138,8 +134,8 @@ server <- function(input, output, session) {
     print(probabilites)
     
     # Calculer et afficher l'accuracy
-    accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
-    results$accuracy <- accuracy
+    # accuracy <- sum(predictions == y_test_numeric) / length(y_test_numeric)
+    # results$accuracy <- accuracy
     
     # Afficher le résumé du modèle
     output$summary_output <- renderPrint({
@@ -147,10 +143,26 @@ server <- function(input, output, session) {
       model()$summary()
     })
     
-    # Afficher les métriques
+    # Matrice de confusion
+    confusion <- confusionMatrix(as.factor(predictions), as.factor(y_test_numeric))
+    
+    # Accuracy
+    accuracy <- confusion$overall['Accuracy']
+    
+    # F1-score
+    f1_weighted <- F1_Score(y_pred = predictions, y_true = y_test_numeric)
+    
+    # Préparer le texte pour afficher les résultats dans metrics_output
+    metrics_text <- paste(
+      "Accuracy: ", round(accuracy, 4), "\n",
+      "F1 Score: ", round(f1_weighted, 4), "\n\n",
+      "Confusion Matrix:\n", 
+      paste(capture.output(print(confusion)), collapse = "\n"), "\n"
+    )
+    
+    # Afficher les métriques dans metrics_output
     output$metrics_output <- renderPrint({
-      req(results$accuracy)
-      cat("Accuracy: ", results$accuracy, "\n")
+      cat(metrics_text)
     })
     
     # Afficher la courbe de perte
