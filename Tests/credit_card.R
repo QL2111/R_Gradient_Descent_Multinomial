@@ -22,8 +22,8 @@ data$Approved <- as.factor(data$Approved)
 # Diviser et préparer les données en ensembles d'entraînement et de test
 set.seed(42)  # Pour la reproductibilité
 
-data_prep <- DataPreparer$new(use_factor_analysis = TRUE)
-prepared_data <- data_prep$prepare_data(data, "Approved", 0.7, stratify = TRUE, remove_outliers = TRUE, outlier_seuil = 0.10)
+data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
+prepared_data <- data_prep$prepare_data(data, "Approved", 0.7, stratify = TRUE, remove_outliers = FALSE, outlier_seuil = 0.10)
 
 # Accéder aux données préparées
 X_train <- prepared_data$X_train
@@ -32,10 +32,10 @@ y_train <- prepared_data$y_train
 y_test <- prepared_data$y_test
 
 # Afficher les proportions des classes dans les ensembles d'entraînement et de test
-cat("Proportions des classes dans l'ensemble d'entraînement :\n")
-print(table(y_train) / length(y_train))
-cat("Proportions des classes dans l'ensemble de test :\n")
-print(table(y_test) / length(y_test))
+# cat("Proportions des classes dans l'ensemble d'entraînement :\n")
+# print(table(y_train) / length(y_train))
+# cat("Proportions des classes dans l'ensemble de test :\n")
+# print(table(y_test) / length(y_test))
 
 # Convertir les données préparées en matrices
 X_train_matrix <- as.matrix(X_train)
@@ -46,7 +46,7 @@ y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 100, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization=FALSE)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 500, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization=FALSE)
 model$fit(X_train_matrix, y_train_numeric)
 
 # Prédire sur l'ensemble de test
@@ -61,9 +61,10 @@ predictions <- model$predict(X_test_matrix)
 
 # Matrice de confusion pour évaluer les performances
 model$summary()
-model$plot_loss()
 
 model$print(X_test_matrix, y_test_numeric)
+model$plot_loss()
+
 
 # print(confusion_matrix)
 

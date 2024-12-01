@@ -12,9 +12,7 @@ This class is part of a package designed to support data preparation tasks, part
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{use_factor_analysis}}{A logical flag indicating whether to apply factor analysis on qualitative data instead of one-hot encoding. Default is \code{FALSE}.}
-
-\item{\code{use_factor_analysis}}{Logical. Indicates whether to apply factor analysis for qualitative data encoding.}
+\item{\code{use_factor_analysis}}{Logical. Indicates whether to apply factor analysis for both quantitative and qualitative variables.}
 }
 \if{html}{\out{</div>}}
 }
@@ -22,8 +20,14 @@ This class is part of a package designed to support data preparation tasks, part
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-DataPreparer-new}{\code{DataPreparer$new()}}
+\item \href{#method-DataPreparer-calculate_mode}{\code{DataPreparer$calculate_mode()}}
 \item \href{#method-DataPreparer-standardize}{\code{DataPreparer$standardize()}}
+\item \href{#method-DataPreparer-split_data}{\code{DataPreparer$split_data()}}
 \item \href{#method-DataPreparer-prepare_data}{\code{DataPreparer$prepare_data()}}
+\item \href{#method-DataPreparer-handle_missing_data}{\code{DataPreparer$handle_missing_data()}}
+\item \href{#method-DataPreparer-process_data}{\code{DataPreparer$process_data()}}
+\item \href{#method-DataPreparer-detect_outliers}{\code{DataPreparer$detect_outliers()}}
+\item \href{#method-DataPreparer-remove_outliers}{\code{DataPreparer$remove_outliers()}}
 \item \href{#method-DataPreparer-clone}{\code{DataPreparer$clone()}}
 }
 }
@@ -48,6 +52,26 @@ A new `DataPreparer` object.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-calculate_mode"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-calculate_mode}{}}}
+\subsection{Method \code{calculate_mode()}}{
+Calculates the mode of a vector.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$calculate_mode(x)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{x}}{A vector.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The mode of the vector.
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DataPreparer-standardize"></a>}}
 \if{latex}{\out{\hypertarget{method-DataPreparer-standardize}{}}}
 \subsection{Method \code{standardize()}}{
@@ -68,31 +92,150 @@ A standardized numeric vector with mean 0 and standard deviation 1.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DataPreparer-prepare_data"></a>}}
-\if{latex}{\out{\hypertarget{method-DataPreparer-prepare_data}{}}}
-\subsection{Method \code{prepare_data()}}{
-Prepares data by standardizing quantitative variables and encoding qualitative variables.
+\if{html}{\out{<a id="method-DataPreparer-split_data"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-split_data}{}}}
+\subsection{Method \code{split_data()}}{
+Splits the data into training and test sets.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$prepare_data(data)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$split_data(data, target_col, split_ratio = 0.7, stratify = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{data}}{A data frame containing both quantitative and qualitative variables.}
+\item{\code{data}}{A data frame.}
+
+\item{\code{target_col}}{Character. The name of the target column.}
+
+\item{\code{split_ratio}}{Numeric. The ratio of the training set size to the total data size. Default is 0.7.}
+
+\item{\code{stratify}}{Logical. Whether to stratify the split based on the target column. Default is FALSE.}
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Details}{
-The `prepare_data` method processes quantitative and qualitative data separately:
-\itemize{
-  \item \strong{Quantitative data}: Standardizes each quantitative variable to have mean 0 and standard deviation 1.
-  \item \strong{Qualitative data}: If `use_factor_analysis` is `TRUE`, applies factor analysis. If `FALSE`, performs one-hot encoding.
+\subsection{Returns}{
+A list containing the training and test sets.
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-prepare_data"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-prepare_data}{}}}
+\subsection{Method \code{prepare_data()}}{
+Prepares the data for modeling by handling missing data, removing outliers, and splitting the data.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$prepare_data(
+  data,
+  target_col,
+  split_ratio = 0.7,
+  stratify = FALSE,
+  remove_outliers = FALSE,
+  outlier_seuil = 0.25
+)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{A data frame.}
+
+\item{\code{target_col}}{Character. The name of the target column.}
+
+\item{\code{split_ratio}}{Numeric. The ratio of the training set size to the total data size. Default is 0.7.}
+
+\item{\code{stratify}}{Logical. Whether to stratify the split based on the target column. Default is FALSE.}
+
+\item{\code{remove_outliers}}{Logical. Whether to remove outliers. Default is FALSE.}
+
+\item{\code{outlier_seuil}}{Numeric. The threshold for detecting outliers. Default is 0.25.}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
-A prepared data frame with standardized quantitative variables and encoded qualitative variables.
+A list containing the prepared training and test sets.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-handle_missing_data"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-handle_missing_data}{}}}
+\subsection{Method \code{handle_missing_data()}}{
+Handles missing data by imputing missing values. Median imputation is used for quantitative variables, and mode imputation is used for qualitative variables.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$handle_missing_data(data)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{A data frame with missing values.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A data frame with missing values imputed.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-process_data"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-process_data}{}}}
+\subsection{Method \code{process_data()}}{
+Processes the data by standardizing numeric variables and applying factor analysis if specified.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$process_data(data)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{A data frame.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A processed data frame.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-detect_outliers"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-detect_outliers}{}}}
+\subsection{Method \code{detect_outliers()}}{
+Detects outliers in numeric data.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$detect_outliers(x, seuil = 0.25)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{x}}{A numeric vector.}
+
+\item{\code{seuil}}{Numeric. The threshold for detecting outliers. Default is 0.25.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A vector of indices of the outliers.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DataPreparer-remove_outliers"></a>}}
+\if{latex}{\out{\hypertarget{method-DataPreparer-remove_outliers}{}}}
+\subsection{Method \code{remove_outliers()}}{
+Removes outliers from the data by replacing them with NA.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataPreparer$remove_outliers(data, seuil = 0.25)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{A data frame with numeric data.}
+
+\item{\code{seuil}}{Numeric. The threshold for detecting outliers. Default is 0.25.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A data frame with outliers replaced by NA.
 }
 }
 \if{html}{\out{<hr>}}

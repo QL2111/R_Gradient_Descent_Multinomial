@@ -12,5 +12,9 @@ Imports:
     R6,
     stats,
     utils,
-    FactoMineR
+    FactoMineR,
+    factoextra,
+    caret,
+    MLmetrics,
+    pROC
 RoxygenNote: 7.3.2
