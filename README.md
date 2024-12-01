@@ -218,6 +218,8 @@ model$plot_loss()
 model$select_variables(5)
 
 ```
+<h2 id="Rshiny App">✔️ Rshiny App</h2>
+Pour lancer l'application, ..............
 
 <h2 id="output">📊 Example Output</h2>
 
@@ -243,4 +245,5 @@ You can certainly contribute by working on these topics :
 - Enhancing the visualization capabilities for model evaluation.
 - Improve the UI.
 - Continue the interconnection between the package and the Rshiny using Docker.
+- Add error messages to report unspecified parameters on the shiny App.
 
