@@ -3,27 +3,26 @@
 ## 📖 **Table of Contents**
 
 1. [Introduction](#introduction)
-2. [Descriptions]  
+2. [Descriptions](#descriptions)
 3. [Installation](#installation)
-4. [Package Architecture](#package-architecture)  
-   * [DataPreparer: Data Preparation](#datapreparer-data-preparation)  
+4. [Package Architecture](#package-architecture)
+   * [DataPreparer: Data Preparation](#datapreparer-data-preparation)
    * [LogisticRegressionMultinomial: Logistic Regression Model](#logisticregressionmultinomial-logistic-regression-model)
-5. [Data Flow]
+5. [Data Flow](#data-flow)
 6. [Usage Example](#usage-example)
-7. [Output]
-8. [Multinomial Target Handling](#Multinomial Target Handling)
-9. [Authors and License]
+7. [Output](#output)
+8. [Multinomial Target Handling](#multinomial-target-handling)
+9. [Authors and License](#authors-and-license)
 10. [Contributing and Support](#contributing-and-support)
 
-## 🧩 **Introduction**
+<h2 id="introduction">🧩 **Introduction**</h2>
 
-The `LogisticRegressionMultinomial` class provides a flexible and powerful solution to fit multinomial logistic regression models. The `DataPreparer` class offers advanced data preprocessing, including handling missing values, detecting and removing outliers, and encoding categorical variables.
+The `LogisticRegressionMultinomial` class provides a flexible and powerful solution to fit multinomial logistic regression models. The `DataPreparer` class offers advanced data preprocessing and should be used in accordance with the `LogistRegressionMultinomial` class. This project is in accordance with the courses "Programmation en R" dispensed in Lyon 2 Université Lumière Master 2 -SISE.
 
-## 🤖 Descriptions
+<h2 id="descriptions">🤖 **Descriptions**</h2>
 This project implements a multinomial logistic regression model using gradient descent, encapsulated in a customizable R package. The package supports mixed predictor variables (qualitative and quantitative) and can be installed directly from GitHub. An interactive Shiny application is included, enabling simplified exploration of the package's features and results.
-https://docs.google.com/document/d/156TOP_Mk1kutaAZslE7FNKdw-8WSfL8yQg_orYBqDE0/edit?tab=t.0
 
-## 🛠️ **Installation**
+<h2 id="installation">🛠️ **Installation**</h2>
 In order to use this package, it is recommend to use `devtools::install_github`
 ```r
 library(devtools)
@@ -52,7 +51,8 @@ install.packages([Specify your path here], repos = NULL, type = "source")
 ```
 
 
-## 🔧 Package Architecture
+<h2 id="package-architecture">🔧 Package Architecture</h2>
+
 ### **DataPreparer: Data Preparation**
 
 The `DataPreparer` class is responsible for preparing the input data for the logistic regression model.
@@ -120,7 +120,7 @@ The `LogisticRegressionMultinomial` class is designed to train multinomial logis
 
 ---
 
-## 🏗️ Data Flow
+<h2 id="data-flow">🏗️ Data Flow</h2>
 
 1. **Data Loading and Preparation**  
    * Handle missing values through imputation (median for quantitative variables and mode for categorical variables).  
@@ -137,8 +137,9 @@ The `LogisticRegressionMultinomial` class is designed to train multinomial logis
    * Evaluate model performance using confusion matrices, ROC curves, and AUC values for each class.  
    * Display feature importance and the overall model summary.
 
-## 💻 Usage Example
-We will test this pacjage with the `IRIS` dataset
+<h2 id="usage-example">💻 Usage Example</h2>
+
+We will test this package with the `IRIS` dataset
 ```r
 
 # Load example data
@@ -191,19 +192,22 @@ model$var_importance()
 model$plot_loss()
 ```
 
-## 📊 Output
+<h2 id="output">📊 Output</h2>
+
 Mettre les graphiques de loss, auc, var importances
 Montrer le summary et le print depuis le RShiny(capture d'écran)
 
-## 🎯 Multinomial Target Handling
+<h2 id="multinomial-target-handling">🎯 Multinomial Target Handling</h2>
 
 - Cross Entropy
 
-## ⚖️ Authors and License
+<h2 id="authors-and-license">⚖️ Authors and License</h2>
+
 This project was developed by AWA KARAMOKO, TAHINARISOA DANIELLA RAKOTONDRATSIMBA, QUENTIN LIM as part of the Master 2 SISE program (2024-2025) at Lyon 2 Université Lumière.
 Distributed under the MIT License.
 
-## 🤝 Contributing and Support
+<h2 id="contributing-and-support">🤝 Contributing and Support</h2>
+
 Contributions are welcome! Feel free to open an issue or submit a pull request to suggest improvements or report bugs.
 - Parallise the computation
 - SMOTE
