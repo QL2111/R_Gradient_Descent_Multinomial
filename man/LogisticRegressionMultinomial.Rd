@@ -75,71 +75,30 @@ devtools::install_github("Lien du repo")
 
 This class allows users to fit a multinomial logistic regression model, calculate class probabilities using softmax, and make predictions. It supports features like loss tracking, variable importance calculation, and a summary of model performance.
 
-
-The function initializes the coefficients, splits the data into training and validation sets, and performs mini-batch gradient descent using the specified optimizer (Adam or SGD). It also includes early stopping based on validation loss.
-
-The Adam optimizer updates the coefficients using the following formulas:
-\deqn{m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t}
-\deqn{v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2}
-\deqn{\hat{m}_t = \frac{m_t}{1 - \beta_1^t}}
-\deqn{\hat{v}_t = \frac{v_t}{1 - \beta_2^t}}
-\deqn{\theta_t = \theta_{t-1} - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}}
-
-The SGD optimizer updates the coefficients using the following formula:
-\deqn{\theta_t = \theta_{t-1} - \alpha g_t}
-
-
-The Adam optimizer updates the coefficients using the following formulas:
-\deqn{m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t}
-\deqn{v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2}
-\deqn{\hat{m}_t = \frac{m_t}{1 - \beta_1^t}}
-\deqn{\hat{v}_t = \frac{v_t}{1 - \beta_2^t}}
-\deqn{\theta_t = \theta_{t-1} - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}}
-where \eqn{m_t} and \eqn{v_t} are the first and second moment estimates, \eqn{\beta_1} and \eqn{\beta_2} are the exponential decay rates, \eqn{\alpha} is the learning rate, and \eqn{\epsilon} is a small constant for numerical stability.
-
-
-The function first converts the target labels `y_batch` into a one-hot encoded matrix. It then computes the linear model as:
-\deqn{Z = X_{batch} \cdot \beta}
-where \eqn{X_{batch}} is the input feature matrix and \eqn{\beta} are the coefficients.
-
-The probabilities are computed using the softmax function:
-\deqn{P = \text{softmax}(Z)}
-
-The error is calculated as the difference between the predicted probabilities and the one-hot encoded target labels:
-\deqn{\text{error} = P - \text{one\_hot\_y}}
-
-The gradient of the loss with respect to the coefficients is computed as:
-\deqn{\nabla L = \frac{1}{N} X_{batch}^T \cdot \text{error}}
-where \eqn{N} is the number of samples in the batch.
-
-Finally, the coefficients are updated using the gradient and the learning rate:
-\deqn{\beta = \beta - \text{learning\_rate} \cdot \nabla L}
-
-
-The softmax function is defined as:
-\deqn{softmax(z_i) = \frac{e^{z_i}}{\sum_{j} e^{z_j}}}
-where \(z_i\) is the \(i\)-th element of the input matrix \(z\).
+The `fit` method initializes model coefficients and applies gradient descent to minimize the loss function. It calculates class probabilities with softmax and updates coefficients based on the gradient.
 
 The function checks if the loss history is available and non-empty. If the loss history is empty, it stops and prompts the user to run the 'fit' method first. Otherwise, it plots the loss history.
 
 The function calculates the ROC AUC for each class using the One vs All strategy. It then plots the ROC curve for each class and displays the AUC value for each class.
 
 This function prints out the hyperparameters of the model, including the optimizer, learning rate, number of iterations, and loss function. If the optimizer is "adam", it also prints out the Adam-specific parameters: Beta1, Beta2, and Epsilon.
-It will also print out the regularization method, batch size, and early stopping parameters.
 
-This function calculates the importance of each feature based on the absolute value of the coefficients. It sums the absolute coefficients for each feature and selects the top 'num_variables' features based on their importance scores.
 
-The ElasticNet regularization combines L1 and L2 penalties. The penalty term is computed as:
-\deqn{penalty = \frac{\lambda}{2} \left( (1 - p) \sum_{j=1}^{n} \beta_j^2 + p \sum_{j=1}^{n} |\beta_j| \right)}
-where \(\lambda\) is the regularization parameter, \(p\) is the mixing parameter, \(\beta_j\) are the model coefficients, and \(n\) is the number of coefficients.
+The function performs the following steps:
+\itemize{
+  \item Predicts the labels for the test data using the model.
+  \item Computes and prints the confusion matrix.
+  \item Computes and prints the classification report using the `caret` package.
+  \item Computes and prints the weighted F1 score using the `MLmetrics` package.
+}
 
-For Ridge regularization, the penalty term is computed as:
-\deqn{penalty = \frac{1}{2} \sum_{j=1}^{n} \beta_j^2}
-where \(\beta_j\) are the model coefficients.
 
-For Lasso regularization, the penalty term is computed as:
-\deqn{penalty = \frac{1}{2} \sum_{j=1}^{n} |\beta_j|}
-where \(\beta_j\) are the model coefficients.
+This function uses the Adam optimization algorithm to update the coefficients of a multinomial logistic regression model. It also includes an option for early stopping based on validation loss.
+
+
+The function iteratively updates the model's coefficients using the gradient of the loss function with respect to the coefficients.
+It also supports early stopping based on validation loss to prevent overfitting.
+
 
 This function generates a PMML file for a multinomial logistic regression model, including the model's
   coefficients and metadata. It ensures that the model is trained before exporting and uses the PMML version 4.4 format.
@@ -147,30 +106,12 @@ This function generates a PMML file for a multinomial logistic regression model,
 \examples{
 
 ## ------------------------------------------------
-## Method `LogisticRegressionMultinomial$fit`
+## Method `LogisticRegressionMultinomial$var_importance`
 ## ------------------------------------------------
 
 \dontrun{
-model <- LogisticRegressionMultinomial$new()
-model$fit(X, y, validation_split = 0.2)
+model$var_importance()
 }
-Adam Optimizer for Multinomial Logistic Regression
-
-This function performs a single update of the coefficients using the Adam optimization algorithm. It computes the loss, gradients, and updates the coefficients based on the first and second moment estimates.
-
-## ------------------------------------------------
-## Method `LogisticRegressionMultinomial$validate`
-## ------------------------------------------------
-
-# Assuming `model` is an instance of the logistic regression model
-loss <- model$validate(X_val, y_val, unique_classes)
-
-## ------------------------------------------------
-## Method `LogisticRegressionMultinomial$softmax`
-## ------------------------------------------------
-
-# Assuming `z` is a matrix of linear model outputs
-probabilities <- softmax(z)
 
 ## ------------------------------------------------
 ## Method `LogisticRegressionMultinomial$plot_loss`
@@ -197,11 +138,59 @@ model$summary()
 }
 
 ## ------------------------------------------------
+## Method `LogisticRegressionMultinomial$print`
+## ------------------------------------------------
+
+\dontrun{
+model$print(X_test, y_test)
+}
+
+
+## ------------------------------------------------
+## Method `LogisticRegressionMultinomial$log_loss`
+## ------------------------------------------------
+
+y_true <- c(1, 0, 1, 0)
+y_pred <- c(0.9, 0.1, 0.8, 0.2)
+log_loss(y_true, y_pred)
+
+## ------------------------------------------------
+## Method `LogisticRegressionMultinomial$mse_loss`
+## ------------------------------------------------
+
+y_true <- c(1, 0, 1, 0)
+y_pred <- c(0.9, 0.1, 0.8, 0.2)
+mse_loss(y_true, y_pred)
+
+## ------------------------------------------------
+## Method `LogisticRegressionMultinomial$adam_optimizer`
+## ------------------------------------------------
+
+\dontrun{
+# Assuming `model` is an instance of the logistic regression class
+model$adam_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+}
+Stochastic Gradient Descent (SGD) Optimizer
+
+This function performs stochastic gradient descent optimization for a multinomial logistic regression model.
+
+
+## ------------------------------------------------
+## Method `LogisticRegressionMultinomial$sgd_optimizer`
+## ------------------------------------------------
+
+\dontrun{
+sgd_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+}
+
+
+## ------------------------------------------------
 ## Method `LogisticRegressionMultinomial$select_variables`
 ## ------------------------------------------------
 
 \dontrun{
-model$select_variables(num_variables = 5)
+  selected_vars <- select_variables(5)
+  print(selected_vars)
 }
 }
 \section{Public fields}{
@@ -232,8 +221,6 @@ model$select_variables(num_variables = 5)
 \item{\code{loss_name}}{Character. Name of the loss function used.}
 
 \item{\code{optimizer}}{Character. Optimizer to use for gradient descent. Options are "adam", "sgd". Default is "adam".}
-
-\item{\code{batch_size}}{Integer. Size of the mini-batch for gradient descent. Default is 32.}
 }
 \if{html}{\out{</div>}}
 }
@@ -242,9 +229,6 @@ model$select_variables(num_variables = 5)
 \itemize{
 \item \href{#method-LogisticRegressionMultinomial-new}{\code{LogisticRegressionMultinomial$new()}}
 \item \href{#method-LogisticRegressionMultinomial-fit}{\code{LogisticRegressionMultinomial$fit()}}
-\item \href{#method-LogisticRegressionMultinomial-adam_optimizer}{\code{LogisticRegressionMultinomial$adam_optimizer()}}
-\item \href{#method-LogisticRegressionMultinomial-sgd_optimizer}{\code{LogisticRegressionMultinomial$sgd_optimizer()}}
-\item \href{#method-LogisticRegressionMultinomial-validate}{\code{LogisticRegressionMultinomial$validate()}}
 \item \href{#method-LogisticRegressionMultinomial-softmax}{\code{LogisticRegressionMultinomial$softmax()}}
 \item \href{#method-LogisticRegressionMultinomial-one_hot_encode}{\code{LogisticRegressionMultinomial$one_hot_encode()}}
 \item \href{#method-LogisticRegressionMultinomial-predict}{\code{LogisticRegressionMultinomial$predict()}}
@@ -252,6 +236,12 @@ model$select_variables(num_variables = 5)
 \item \href{#method-LogisticRegressionMultinomial-plot_loss}{\code{LogisticRegressionMultinomial$plot_loss()}}
 \item \href{#method-LogisticRegressionMultinomial-plot_auc}{\code{LogisticRegressionMultinomial$plot_auc()}}
 \item \href{#method-LogisticRegressionMultinomial-summary}{\code{LogisticRegressionMultinomial$summary()}}
+\item \href{#method-LogisticRegressionMultinomial-print}{\code{LogisticRegressionMultinomial$print()}}
+\item \href{#method-LogisticRegressionMultinomial-log_loss}{\code{LogisticRegressionMultinomial$log_loss()}}
+\item \href{#method-LogisticRegressionMultinomial-mse_loss}{\code{LogisticRegressionMultinomial$mse_loss()}}
+\item \href{#method-LogisticRegressionMultinomial-adam_optimizer}{\code{LogisticRegressionMultinomial$adam_optimizer()}}
+\item \href{#method-LogisticRegressionMultinomial-sgd_optimizer}{\code{LogisticRegressionMultinomial$sgd_optimizer()}}
+\item \href{#method-LogisticRegressionMultinomial-predict_proba}{\code{LogisticRegressionMultinomial$predict_proba()}}
 \item \href{#method-LogisticRegressionMultinomial-select_variables}{\code{LogisticRegressionMultinomial$select_variables()}}
 \item \href{#method-LogisticRegressionMultinomial-apply_regularization}{\code{LogisticRegressionMultinomial$apply_regularization()}}
 \item \href{#method-LogisticRegressionMultinomial-export_pmml}{\code{LogisticRegressionMultinomial$export_pmml()}}
@@ -274,8 +264,7 @@ Initializes a new instance of the `LogisticRegressionMultinomial` class.
   epsilon = 1e-08,
   patience = 20,
   use_early_stopping = TRUE,
-  regularization = "none",
-  batch_size = 32
+  regularization = "none"
 )}\if{html}{\out{</div>}}
 }
 
@@ -301,24 +290,18 @@ Initializes a new instance of the `LogisticRegressionMultinomial` class.
 \item{\code{use_early_stopping}}{Logical. Whether to use early stopping. Default is TRUE.}
 
 \item{\code{regularization}}{Character. Regularization method to use. Options are "none", "ridge", "lasso", "elasticnet". Default is "none".}
-
-\item{\code{batch_size}}{Integer. Size of the mini-batch for gradient descent. Default is 32, put 1 for online learning.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
 A new `LogisticRegressionMultinomial` object.
-Fit the Multinomial Logistic Regression Model
-
-This function fits a multinomial logistic regression model to the given data using either the Adam or SGD optimizer.
-By default, the model uses early stopping based on the validation loss with a patience of 20 iterations.
-It will also use by default the logistique loss function, the Adam optimizer with a mini-batch of 32, and no regularization.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-fit"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-fit}{}}}
 \subsection{Method \code{fit()}}{
+Fits the multinomial logistic regression model to the provided data.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$fit(X, y, validation_split = 0.2)}\if{html}{\out{</div>}}
 }
@@ -326,149 +309,23 @@ It will also use by default the logistique loss function, the Adam optimizer wit
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{X}}{A matrix or data frame of input features.}
+\item{\code{X}}{A data frame or matrix of predictors (features), where rows represent samples and columns represent features.}
 
-\item{\code{y}}{A factor vector of target labels.}
+\item{\code{y}}{A factor or character vector representing the response variable (target classes).}
 
-\item{\code{validation_split}}{A numeric value indicating the proportion of the data to be used for validation (default is 0.2).}
+\item{\code{validation_split}}{Numeric. Fraction of the training data to be used as validation data. Default is 0.2.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-None. The function updates the model's coefficients in place.
+No return value; updates the model's coefficients.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-model <- LogisticRegressionMultinomial$new()
-model$fit(X, y, validation_split = 0.2)
-}
-Adam Optimizer for Multinomial Logistic Regression
-
-This function performs a single update of the coefficients using the Adam optimization algorithm. It computes the loss, gradients, and updates the coefficients based on the first and second moment estimates.
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-LogisticRegressionMultinomial-adam_optimizer"></a>}}
-\if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-adam_optimizer}{}}}
-\subsection{Method \code{adam_optimizer()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$adam_optimizer(
-  X_batch,
-  y_batch,
-  m,
-  v,
-  beta1,
-  beta2,
-  learning_rate,
-  epsilon,
-  i,
-  coefficients
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{X_batch}}{A matrix of input features for the current batch.}
-
-\item{\code{y_batch}}{A factor vector of response variables for the current batch.}
-
-\item{\code{m}}{A matrix of the first moment estimates.}
-
-\item{\code{v}}{A matrix of the second moment estimates.}
-
-\item{\code{beta1}}{The exponential decay rate for the first moment estimates.}
-
-\item{\code{beta2}}{The exponential decay rate for the second moment estimates.}
-
-\item{\code{learning_rate}}{The learning rate for the optimizer.}
-
-\item{\code{epsilon}}{A small constant for numerical stability.}
-
-\item{\code{i}}{The current iteration number.}
-
-\item{\code{coefficients}}{A matrix of current coefficients.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A list containing the updated coefficients, first moment estimates (m), second moment estimates (v), and the loss value.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-LogisticRegressionMultinomial-sgd_optimizer"></a>}}
-\if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-sgd_optimizer}{}}}
-\subsection{Method \code{sgd_optimizer()}}{
-This function performs a single step of Stochastic Gradient Descent (SGD) optimization for multinomial logistic regression.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$sgd_optimizer(
-  X_batch,
-  y_batch,
-  learning_rate,
-  coefficients
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{X_batch}}{A matrix of input features for the current batch.}
-
-\item{\code{y_batch}}{A factor vector of target labels for the current batch.}
-
-\item{\code{learning_rate}}{A numeric value representing the learning rate for SGD.}
-
-\item{\code{coefficients}}{A matrix of current coefficients for the logistic regression model.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A matrix of updated coefficients after performing one step of SGD.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-LogisticRegressionMultinomial-validate"></a>}}
-\if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-validate}{}}}
-\subsection{Method \code{validate()}}{
-This function validates the model using the provided validation data.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$validate(X_val, y_val, unique_classes)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{X_val}}{A matrix of validation features.}
-
-\item{\code{y_val}}{A vector of validation labels.}
-
-\item{\code{unique_classes}}{A vector of unique class labels.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The log loss of the validation data.
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{# Assuming `model` is an instance of the logistic regression model
-loss <- model$validate(X_val, y_val, unique_classes)
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-softmax"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-softmax}{}}}
 \subsection{Method \code{softmax()}}{
-Computes the softmax of the input matrix. The softmax function is used to convert the linear model outputs into class probabilities, projecting them into the range [0, 1].
+Computes the softmax of the input matrix.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$softmax(z)}\if{html}{\out{</div>}}
 }
@@ -483,21 +340,12 @@ Computes the softmax of the input matrix. The softmax function is used to conver
 \subsection{Returns}{
 A matrix of softmax probabilities for each class.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{# Assuming `z` is a matrix of linear model outputs
-probabilities <- softmax(z)
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-one_hot_encode"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-one_hot_encode}{}}}
 \subsection{Method \code{one_hot_encode()}}{
-One-hot encodes the response variable, converting it into a binary matrix. Each row corresponds to a sample, and each column corresponds to a class label.
+One-hot encodes the response variable.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$one_hot_encode(y, unique_classes)}\if{html}{\out{</div>}}
 }
@@ -519,8 +367,7 @@ A binary matrix where each row corresponds to a sample, and each column correspo
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-predict"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-predict}{}}}
 \subsection{Method \code{predict()}}{
-Predicts the class labels for new data. The function calculates logits and converts them into class probabilities using the softmax function.
-It then returns the class with the highest probability for each sample.
+Predicts the class labels for new data.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$predict(X)}\if{html}{\out{</div>}}
 }
@@ -540,7 +387,7 @@ A vector of predicted class labels for each sample.
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-var_importance"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-var_importance}{}}}
 \subsection{Method \code{var_importance()}}{
-This function calculates the importance of each feature based on the absolute value of the coefficients. It averages the absolute coefficients across all classes and sorts them in descending order.
+This function calculates the importance of each feature based on the absolute value of the coefficients.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$var_importance()}\if{html}{\out{</div>}}
 }
@@ -548,6 +395,16 @@ This function calculates the importance of each feature based on the absolute va
 \subsection{Returns}{
 A vector of feature importance scores, sorted in descending order.
 }
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\dontrun{
+model$var_importance()
+}
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-plot_loss"></a>}}
@@ -576,7 +433,7 @@ model$plot_loss()
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-plot_auc"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-plot_auc}{}}}
 \subsection{Method \code{plot_auc()}}{
-This function calculates and plots the ROC AUC for the model predictions. It uses the One vs All strategy to calculate the ROC AUC for each class and plots the ROC curve for each class.
+This function calculates and plots the ROC AUC for the model predictions.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$plot_auc(X_test, y_test, probabilities = NULL)}\if{html}{\out{</div>}}
 }
@@ -630,10 +487,253 @@ model$summary()
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LogisticRegressionMultinomial-print"></a>}}
+\if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-print}{}}}
+\subsection{Method \code{print()}}{
+This function prints the results of the logistic regression multinomial model on the test data.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$print(X_test, y_test)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{X_test}}{A data frame or matrix containing the test features.}
+
+\item{\code{y_test}}{A vector containing the true labels for the test data.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+This function does not return a value. It prints the confusion matrix, classification report, and F1 score.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\dontrun{
+model$print(X_test, y_test)
+}
+
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LogisticRegressionMultinomial-log_loss"></a>}}
+\if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-log_loss}{}}}
+\subsection{Method \code{log_loss()}}{
+This function computes the log loss, also known as logistic loss or cross-entropy loss, 
+between the true labels and the predicted probabilities.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$log_loss(y_true, y_pred)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{y_true}}{A numeric vector of true labels.}
+
+\item{\code{y_pred}}{A numeric vector of predicted probabilities.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A numeric value representing the log loss.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{y_true <- c(1, 0, 1, 0)
+y_pred <- c(0.9, 0.1, 0.8, 0.2)
+log_loss(y_true, y_pred)
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LogisticRegressionMultinomial-mse_loss"></a>}}
+\if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-mse_loss}{}}}
+\subsection{Method \code{mse_loss()}}{
+This function computes the mean squared error (MSE) loss between the true labels 
+and the predicted values.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$mse_loss(y_true, y_pred)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{y_true}}{A numeric vector of true labels.}
+
+\item{\code{y_pred}}{A numeric vector of predicted values.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A numeric value representing the MSE loss.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{y_true <- c(1, 0, 1, 0)
+y_pred <- c(0.9, 0.1, 0.8, 0.2)
+mse_loss(y_true, y_pred)
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LogisticRegressionMultinomial-adam_optimizer"></a>}}
+\if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-adam_optimizer}{}}}
+\subsection{Method \code{adam_optimizer()}}{
+This function performs optimization using the Adam algorithm to update the coefficients of a multinomial logistic regression model.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$adam_optimizer(
+  X_train,
+  y_train,
+  X_val,
+  y_val,
+  unique_classes,
+  num_samples,
+  num_features,
+  num_classes,
+  best_loss,
+  patience_counter
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{X_train}}{Matrix of training data.}
+
+\item{\code{y_train}}{Vector of training labels.}
+
+\item{\code{X_val}}{Matrix of validation data for early stopping.}
+
+\item{\code{y_val}}{Vector of validation labels for early stopping.}
+
+\item{\code{unique_classes}}{Vector of unique class labels.}
+
+\item{\code{num_samples}}{Number of samples in the training data.}
+
+\item{\code{num_features}}{Number of features in the training data.}
+
+\item{\code{num_classes}}{Number of unique classes.}
+
+\item{\code{best_loss}}{Best validation loss observed so far.}
+
+\item{\code{patience_counter}}{Counter for the number of iterations without improvement in validation loss.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Updated coefficients after performing optimization.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\dontrun{
+# Assuming `model` is an instance of the logistic regression class
+model$adam_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+}
+Stochastic Gradient Descent (SGD) Optimizer
+
+This function performs stochastic gradient descent optimization for a multinomial logistic regression model.
+
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LogisticRegressionMultinomial-sgd_optimizer"></a>}}
+\if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-sgd_optimizer}{}}}
+\subsection{Method \code{sgd_optimizer()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$sgd_optimizer(
+  X_train,
+  y_train,
+  X_val,
+  y_val,
+  unique_classes,
+  num_samples,
+  num_features,
+  num_classes,
+  best_loss,
+  patience_counter
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{X_train}}{A matrix of training data features.}
+
+\item{\code{y_train}}{A vector of training data labels.}
+
+\item{\code{X_val}}{A matrix of validation data features.}
+
+\item{\code{y_val}}{A vector of validation data labels.}
+
+\item{\code{unique_classes}}{A vector of unique class labels.}
+
+\item{\code{num_samples}}{An integer representing the number of training samples.}
+
+\item{\code{num_features}}{An integer representing the number of features in the training data.}
+
+\item{\code{num_classes}}{An integer representing the number of unique classes.}
+
+\item{\code{best_loss}}{A numeric value representing the best validation loss observed.}
+
+\item{\code{patience_counter}}{An integer representing the current count of iterations without improvement in validation loss.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\dontrun{
+sgd_optimizer(X_train, y_train, X_val, y_val, unique_classes, num_samples, num_features, num_classes, best_loss, patience_counter)
+}
+
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LogisticRegressionMultinomial-predict_proba"></a>}}
+\if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-predict_proba}{}}}
+\subsection{Method \code{predict_proba()}}{
+Predicts the class probabilities for new data.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$predict_proba(X)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{X}}{A data frame or matrix of predictors, where rows are samples and columns are features.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A matrix of predicted class probabilities for each sample.
+Select Important Variables Based on Coefficients
+
+This function selects the most important variables based on the absolute value of the coefficients
+from a logistic regression model. It calculates the importance of each feature, ranks them, and 
+selects the top `num_variables` features.
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-select_variables"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-select_variables}{}}}
 \subsection{Method \code{select_variables()}}{
-Displays the selected variables based on their importance scores.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$select_variables(num_variables)}\if{html}{\out{</div>}}
 }
@@ -641,17 +741,15 @@ Displays the selected variables based on their importance scores.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{num_variables}}{An integer specifying the number of top variables to display.}
+\item{\code{num_variables}}{An integer specifying the number of top variables to select.}
 }
 \if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-None. This function is used for its side effect of printing the selected variables.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{\dontrun{
-model$select_variables(num_variables = 5)
+  selected_vars <- select_variables(5)
+  print(selected_vars)
 }
 }
 \if{html}{\out{</div>}}
@@ -693,7 +791,7 @@ A list containing:
 \if{html}{\out{<a id="method-LogisticRegressionMultinomial-export_pmml"></a>}}
 \if{latex}{\out{\hypertarget{method-LogisticRegressionMultinomial-export_pmml}{}}}
 \subsection{Method \code{export_pmml()}}{
-Exports the trained model to a PMML (Predictive Model Markup Language) file. The PMML file contains the model's coefficients and metadata.
+Exports the trained model to a PMML (Predictive Model Markup Language) file.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LogisticRegressionMultinomial$export_pmml(file_path)}\if{html}{\out{</div>}}
 }
