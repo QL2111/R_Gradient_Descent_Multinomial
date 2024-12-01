@@ -5,44 +5,33 @@
 library(R6)
 
 # Charger les fichiers de fonctions
-source("DataPreparer.R")
-source("LogisticRegressionMultinomial.R")
+source("R/DataPreparer.R")
+source("R/LogisticRegressionMultinomial.R")
 
 # Charger le jeu de données après téléchargement de Kaggle
-data_path <- "Iris.csv"  # Remplacez par le chemin de votre fichier
+data_path <- "data/Iris.csv"  # Remplacez par le chemin de votre fichier
 data <- read.csv(data_path)
 
 # S'assurer que la variable cible est un facteur
 data$Species <- as.factor(data$Species)
 
 # Diviser les données en ensembles d'entraînement et de test
-set.seed(42)  # Pour la reproductibilité
-train_indices <- sample(1:nrow(data), size = 0.7 * nrow(data))  # 70% pour l'entraînement
-train_data <- data[train_indices, ]
-test_data <- data[-train_indices, ]
 
-# Séparer les caractéristiques et la variable cible
-X_train <- train_data[, -which(names(train_data) == "Species")]
-y_train <- train_data$Species
+prepared_data <- data_prep$prepare_data(data, "Species", 0.7, stratify = TRUE, remove_outliers = FALSE, outlier_seuil = 0.10)
+X_train <- prepared_data$X_train
+X_test <- prepared_data$X_test
+y_train <- prepared_data$y_train
+y_test <- prepared_data$y_test
 
-X_test <- test_data[, -which(names(test_data) == "Species")]
-y_test <- test_data$Species
-
-# Préparer les prédicteurs sans inclure la variable cible
-data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-prepared_X_train <- data_prep$prepare_data(X_train)
-prepared_X_test <- data_prep$prepare_data(X_test)
-
-# Convertir les données préparées en matrices
-X_train_matrix <- as.matrix(prepared_X_train)
-X_test_matrix <- as.matrix(prepared_X_test)
+X_train_matrix <- as.matrix(X_train)
+X_test_matrix <- as.matrix(X_test)
 
 # Convertir la variable cible en valeurs numériques
 y_train_numeric <- as.numeric(y_train)
 y_test_numeric <- as.numeric(y_test)
 
 # Initialiser et ajuster le modèle sur l'ensemble d'entraînement
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization = "ridge", lambda1 = 0.0, lambda2 = 0.01)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="adam", use_early_stopping=TRUE, regularization = "ridge")
 model$fit(X_train_matrix, y_train_numeric)
 
 # Prédire sur l'ensemble de test

@@ -175,7 +175,7 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       num_samples <- nrow(X)
       num_features <- ncol(X)
       
-      # Initialize coefficients(weights)
+      # Initialize coefficients (with intercept)
       self$coefficients <- matrix(0, nrow = num_features + 1, ncol = num_classes)
       X <- cbind(1, X)  # Add intercept term
       
@@ -187,7 +187,12 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       X_train <- X[-val_indices, , drop = FALSE]
       y_train <- y[-val_indices]
 
-      # Adam optimizer
+      # Convert to matrix if not the case
+      if (!is.matrix(X_train)) {
+        X_train <- as.matrix(X_train)
+      }
+      
+      # Adam optimizer variables
       m <- matrix(0, nrow = num_features + 1, ncol = num_classes)
       v <- matrix(0, nrow = num_features + 1, ncol = num_classes)
       best_loss <- Inf
@@ -205,23 +210,11 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
           X_batch <- X_train[start_idx:end_idx, , drop = FALSE]
           y_batch <- y_train[start_idx:end_idx]
           
-          # Encode the response variable 
-          one_hot_y <- self$one_hot_encode(y_batch, unique_classes)
-          
-          # Loss
-          linear_model <- X_batch %*% self$coefficients
-          probabilities <- self$softmax(linear_model)
-          loss <- self$log_loss(one_hot_y, probabilities)
-        
-          error <- probabilities - one_hot_y
-          gradient <- t(X_batch) %*% error / nrow(X_batch)
-          
           # Update coefficients with Adam optimizer
-          m <- self$beta1 * m + (1 - self$beta1) * gradient
-          v <- self$beta2 * v + (1 - self$beta2) * (gradient ^ 2)
-          m_hat <- m / (1 - self$beta1 ^ i)
-          v_hat <- v / (1 - self$beta2 ^ i)
-          self$coefficients <- self$coefficients - self$learning_rate * m_hat / (sqrt(v_hat) + self$epsilon)
+          result <- self$adam_optimizer(X_batch, y_batch, m, v, self$beta1, self$beta2, self$learning_rate, self$epsilon, i, self$coefficients)
+          self$coefficients <- result$coefficients
+          m <- result$m
+          v <- result$v
         }
         
         # Validation set for early stopping
@@ -244,7 +237,35 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
       }
     },
 
-    #' @title Validate Model
+    #' @description Computes the log loss for the given true and predicted probabilities.
+    #' @param y_true A binary matrix of true class labels, where each row corresponds to a sample and each column corresponds to a class.
+    #' @param y_pred A matrix of predicted probabilities for each class, where each row corresponds to a sample and each column corresponds to a class.
+    #' @return The log loss value.
+    adam_optimizer = function(X_batch, y_batch, m, v, beta1, beta2, learning_rate, epsilon, i, coefficients) {
+      # Encode the response variable 
+      unique_classes <- levels(y_batch)
+      one_hot_y <- self$one_hot_encode(y_batch, unique_classes)
+      
+      # Loss
+      linear_model <- X_batch %*% coefficients
+      probabilities <- self$softmax(linear_model)
+      loss <- self$log_loss(one_hot_y, probabilities)
+      
+      error <- probabilities - one_hot_y
+      gradient <- t(X_batch) %*% error / nrow(X_batch)
+      
+      # Update coefficients with Adam optimizer
+      m <- beta1 * m + (1 - beta1) * gradient
+      v <- beta2 * v + (1 - beta2) * (gradient ^ 2)
+      m_hat <- m / (1 - beta1 ^ i)
+      v_hat <- v / (1 - beta2 ^ i)
+      
+      coefficients <- coefficients - learning_rate * m_hat / (sqrt(v_hat) + epsilon)
+      
+      return(list(coefficients = coefficients, m = m, v = v, loss = loss))
+    },
+
+
     #' @description This function validates the model using the provided validation data.
     #' @param X_val A matrix of validation features.
     #' @param y_val A vector of validation labels.
@@ -447,6 +468,8 @@ LogisticRegressionMultinomial <- R6Class("LogisticRegressionMultinomial",
     #' @import MLmetrics
     #' @export
     print = function(X_test, y_test) {
+      cat("\n=== Model Metrics ===\n")
+
       probabilities <- self$predict_proba(X_test)
       predictions <- self$predict(X_test)
       

@@ -18,7 +18,7 @@ data$Access_to_Resources <- as.factor(data$Access_to_Resources)
 set.seed(42)  # Pour la reproductibilité
 
 data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
-prepared_data <- data_prep$prepare_data(data, "Access_to_Resources", 0.7, stratify = TRUE, remove_outliers = TRUE, outlier_seuil = 0.10)
+prepared_data <- data_prep$prepare_data(data, "Access_to_Resources", 0.7, stratify = FALSE, remove_outliers = TRUE, outlier_seuil = 0.10)
 # Check if the proportions are equals
 # print(table(prepared_data$y_train) / length(prepared_data$y_train))
 # print(table(prepared_data$y_test) / length(prepared_data$y_test))
@@ -50,7 +50,7 @@ y_test_numeric <- as.numeric(y_test)
 # initialize = function(learning_rate = 0.01, num_iterations = 1000, loss = "logistique", 
 #     optimizer = "adam", beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8, patience = 20, 
 #     use_early_stopping = TRUE, regularization = "none", batch_size = 32) 
-model <- LogisticRegressionMultinomial$new(learning_rate = 0.01, num_iterations = 300, loss="logistique", optimizer="adam",batch_size=32, use_early_stopping=TRUE, regularization = FALSE)
+model <- LogisticRegressionMultinomial$new(learning_rate = 0.1, num_iterations = 1000, loss="logistique", optimizer="adam",batch_size=32, use_early_stopping=TRUE, regularization = FALSE)
 # lasso F1 = 0.99
 # ridge F1 = 0.99
 # elasticnet F1 = 0.99
