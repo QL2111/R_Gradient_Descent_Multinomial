@@ -220,7 +220,7 @@ Montrer le summary et le print depuis le RShiny(capture d'écran)
 
 <h2 id="authors-and-license">⚖️ Authors and License</h2>
 
-This project was developed by AWA KARAMOKO, TAHINARISOA DANIELLA RAKOTONDRATSIMBA, QUENTIN LIM as part of the Master 2 SISE program (2024-2025) at Lyon 2 Université Lumière.
+This project was developed by AWA KARAMOKO, TAHINARISOA DANIELLA RAKOTONDRATSIMBA et QUENTIN LIM as part of the Master 2 SISE program (2024-2025) at Lyon 2 Université Lumière.
 Distributed under the MIT License.
 
 <h2 id="contributing-and-support">🤝 Contributing and Support</h2>
