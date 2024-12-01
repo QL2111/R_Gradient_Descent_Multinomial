@@ -2,15 +2,18 @@
 
 ## 📖 **Table of Contents**
 
-1. [Introduction](#introduction)  
-2. [Installation](#installation)  
-3. [Package Architecture](#package-architecture)  
+1. [Introduction](#introduction)
+2. [Descriptions]  
+3. [Installation](#installation)
+4. [Package Architecture](#package-architecture)  
    * [DataPreparer: Data Preparation](#datapreparer-data-preparation)  
-   * [LogisticRegressionMultinomial: Logistic Regression Model](#logisticregressionmultinomial-logistic-regression-model)  
-4. [Usage Example](#usage-example)
-5. [Multinomial Target Handling](#Multinomial Target Handling)
-6. [Features and Methods](#features-and-methods)  
-7. [Contributing and Support](#contributing-and-support)
+   * [LogisticRegressionMultinomial: Logistic Regression Model](#logisticregressionmultinomial-logistic-regression-model)
+5. [Data Flow]
+6. [Usage Example](#usage-example)
+7. [Output]
+8. [Multinomial Target Handling](#Multinomial Target Handling)
+9. [Authors and License]
+10. [Contributing and Support](#contributing-and-support)
 
 ## 🧩 **Introduction**
 
