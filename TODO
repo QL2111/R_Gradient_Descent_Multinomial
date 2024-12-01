@@ -5,14 +5,15 @@
 #' Rshiny -> Utiliser une librairie, retaper
 #' Pouvoir choisir plusieurs régularisations (L1, L2, ElasticNet) # Daniella # EN COURS, il faut tester avec un jeu de donnée plus dur, car sur student performance, le F1 est déjà à 1
 
-#' Faire mini batch # Quentin (Descente de gradient)
-#' Sortie graphique var importances(barplot) # Awa
+#' Faire mini batch # Quentin (Descente de gradient) ### OK
+#' Sortie graphique var importances(barplot) # Awa ### OK
 #' Pseudo code # Awa
-#' ReadMe Github  # Quentin
+#' ReadMe Github  # Quentin En cours -> Fixer le Usage Examples
 #' Formulaire Shiny, rajouter l'option d'analyse factorielle et de régularisation + early stopping # Daniella
 #' SMOTE # Quentin
 #' Imputation par KNN ? # Quentin -> Inclure dans le rapport discussion, jeu de données lourd
-#' Documentation
+#' Documentation Roxygen # Quentin ### OK
+#' Revoir rapport LaTeX + Tableaux des comparaisons selon les paramètres # Quentin
 #' Peut-être ne pas utiliser caret() + MLmetrics + pROC + 
 #' shiny librairie shinydashboard + shinymaterial + Metrics
 #' LaTeX # Awa
@@ -21,7 +22,7 @@
 #' #' revoir SGD
 #' #' FIT REGRESSION LOGISTIQUE VOIR STRATEGIE Mini Batch(nb paramètre de l'algorithme) au lieu de Batch Gradient Descent(Tout l'ensemble de données) 
 #' ==============================================================BONUS=====================================================
-#' Améliorer SGD Optimizer # Awa #### OK
+#' Améliorer SGD Optimizer # Awa 
 #' Implémenter des objets pertinents que le model peut retourner
 #' #' Paralleliser les calculs
 #' #' R Shiny -> Ajouter nouveaux champ pour les hyperparamètres du modèles,  #### EN COURS + de champs possibles ?

@@ -137,9 +137,6 @@ The `LogisticRegressionMultinomial` class is designed to train multinomial logis
 ## 💻 Usage Example
 We will test this pacjage with the `IRIS` dataset
 ```r
-# Load the package
-library(LogisticRegressionMultinomial)
-library(DataPreparer)
 
 # Load example data
 data(iris)
@@ -149,7 +146,18 @@ y <- iris$Species  # Target variable
 # Prepare the data
 data_prep <- DataPreparer$new(use_factor_analysis = FALSE)
 prepared_data <- data_prep$prepare_data(iris, target_col = "Species")
-X_matrix <- as.matrix(prepared_data[, -1])
+X_train <- prepared_data$X_train
+X_test <- prepared_data$X_test
+y_train <- prepared_data$y_train
+y_test <- prepared_data$y_test
+
+X_train_matrix <- as.matrix(X_train)
+X_test_matrix <- as.matrix(X_test)
+
+
+# Convert the target variable to numeric values
+y_train_numeric <- as.numeric(y_train)
+y_test_numeric <- as.numeric(y_test)
 
 # Initialize the model
 model <- LogisticRegressionMultinomial$new(
@@ -161,19 +169,28 @@ model <- LogisticRegressionMultinomial$new(
   regularization = "ridge"
 )
 
-# Fit the model
-model$fit(X_matrix, y)
+model$fit(X_train_matrix, y_train_numeric)
 
-# Predict new data
-predictions <- model$predict(X_matrix)
+# Prédire sur l'ensemble de test
+predictions <- model$predict(X_test_matrix)
+
+
+# Display the model summary(parameters)
+model$summary()
 
 # Display performance metrics
-model$print(X_matrix, y)
+model$print(X_test_matrix, y_test_numeric)
 
 # Display variable importance
 model$var_importance()
+
+# Display the loss plot
+model$plot_loss()
 ```
 
+## 📊 Output
+Mettre les graphiques de loss, auc, var importances
+Montrer le summary et le print depuis le RShiny(capture d'écran)
 
 ## 🎯 Multinomial Target Handling
 
