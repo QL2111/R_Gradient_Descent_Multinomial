@@ -5,6 +5,9 @@ library(readxl)  # Pour lire les fichiers XLSX
 library(pROC)
 library(caret)
 library(MLmetrics)
+library(R6)
+source("../R/LogisticRegressionMultinomial.R")
+source("../R/DataPreparer.R")
 
 server <- function(input, output, session) {
   
@@ -130,7 +133,7 @@ server <- function(input, output, session) {
     predictions <- model()$predict(X_test_matrix) 
     
     probabilites <- model()$predict_proba(X_test_matrix)
-    print(probabilites)
+    # print(probabilites)
     
     
     # Afficher le résumé du modèle
