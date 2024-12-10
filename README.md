@@ -126,8 +126,12 @@ The `LogisticRegressionMultinomial` class is designed to train multinomial logis
 | **`plot_loss()`**             | Plots the convergence of the loss function during training.                                     |
 | **`plot_auc()`**              | Plots the ROC curve and computes the AUC for each class.                                        |
 | **`var_importance()`**        | Calculates and displays the importance of each feature based on model coefficients.             |
+| **`select_variables()`**      | Displays the selected variables based on their importance scores.                               |
 | **`apply_regularization()`**  | Applies regularization to the model during training.                                            |
 | **`export_pmml()`**           | Exports the trained model to PMML format for external use.                                      |
+| **`print()`**                 | prints the results of the logistic regression multinomial model on the test data.               |
+| **`summary()`**               | Displays the hyperparameters of the trained model.                                              |
+
 
 ---
 
